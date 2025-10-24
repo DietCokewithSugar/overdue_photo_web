@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import type { Route } from 'next';
-import type { Route } from 'next';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeftIcon, TrashIcon } from '@/components/icons';
