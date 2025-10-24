@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLikeMutation, usePostQuery } from '@/features/posts/hooks';
-import { buildStorageProxyUrl } from '@/lib/storage-path';
+import { getPublicImageUrl } from '@/lib/storage-path';
 
 import { CommentsSection } from '@/features/comments/components/comments-section';
 
@@ -55,7 +55,12 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
 
       <div className="grid gap-3">
         {post.images?.map((image) => {
-          const imageUrl = buildStorageProxyUrl(image.storage_path);
+          const imageUrl = getPublicImageUrl(image.storage_path, {
+            width: 1600,
+            height: 1600,
+            resize: 'contain',
+            quality: 90
+          });
           return imageUrl ? (
             <img
               key={image.id}

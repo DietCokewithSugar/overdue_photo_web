@@ -6,8 +6,8 @@ import type { Route } from 'next';
 import type { ContestDto } from '@/features/contests/types';
 import Image from 'next/image';
 
-import { ImageIcon, TrophyIcon } from '@/components/icons';
-import { buildStorageProxyUrl } from '@/lib/storage-path';
+import { TrophyIcon } from '@/components/icons';
+import { getPublicImageUrl } from '@/lib/storage-path';
 
 interface ContestCardProps {
   contest: ContestDto;
@@ -23,7 +23,9 @@ export function ContestCard({ contest }: ContestCardProps) {
   const href = `/contests/${contest.id}` as Route;
   const start = new Date(contest.submission_starts_at).toLocaleDateString();
   const end = new Date(contest.submission_ends_at).toLocaleDateString();
-  const posterUrl = contest.poster_path ? buildStorageProxyUrl(contest.poster_path) : null;
+  const posterUrl = contest.poster_path
+    ? getPublicImageUrl(contest.poster_path, { width: 640, height: 360, resize: 'cover' })
+    : null;
   const singleLimitText =
     contest.single_submission_limit > 0 ? contest.single_submission_limit : '不限';
   const collectionLimitText =

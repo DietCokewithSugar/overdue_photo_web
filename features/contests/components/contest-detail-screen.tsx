@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useContestEntriesQuery, useContestQuery } from '@/features/contests/hooks';
-import { buildStorageProxyUrl } from '@/lib/storage-path';
+import { getPublicImageUrl } from '@/lib/storage-path';
 
 import { ContestEntryCard } from './contest-entry-card';
 
@@ -39,7 +39,9 @@ export function ContestDetailScreen({ contestId }: ContestDetailScreenProps) {
   const start = new Date(contest.submission_starts_at);
   const end = new Date(contest.submission_ends_at);
   const inSubmission = now >= start && now <= end;
-  const posterUrl = contest.poster_path ? buildStorageProxyUrl(contest.poster_path) : null;
+  const posterUrl = contest.poster_path
+    ? getPublicImageUrl(contest.poster_path, { width: 1200, height: 640, resize: 'cover' })
+    : null;
   const activeEntries = activeGroup === 'single' ? singleEntries : collectionEntries;
   const singleLimitText =
     contest.single_submission_limit > 0 ? contest.single_submission_limit : '不限';

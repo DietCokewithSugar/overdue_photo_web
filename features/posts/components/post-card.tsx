@@ -5,7 +5,7 @@ import type { Route } from 'next';
 
 import type { PostDto } from '@/features/posts/types';
 import { ImageIcon } from '@/components/icons';
-import { buildStorageProxyUrl } from '@/lib/storage-path';
+import { getPublicImageUrl } from '@/lib/storage-path';
 
 interface PostCardProps {
   post: PostDto;
@@ -13,7 +13,11 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const href = `/posts/${post.id}` as Route;
-  const coverUrl = buildStorageProxyUrl(post.images?.[0]?.storage_path) as Route | null;
+  const coverUrl = getPublicImageUrl(post.images?.[0]?.storage_path, {
+    width: 800,
+    height: 1000,
+    resize: 'cover'
+  });
 
   return (
     <Link

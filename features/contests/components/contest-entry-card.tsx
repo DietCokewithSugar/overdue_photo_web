@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 import type { ContestEntryDto } from '@/features/contests/types';
 import { ImageIcon } from '@/components/icons';
-import { buildStorageProxyUrl } from '@/lib/storage-path';
+import { getPublicImageUrl } from '@/lib/storage-path';
 
 interface ContestEntryCardProps {
   entry: ContestEntryDto;
@@ -19,11 +19,21 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
 
   const firstImage = viewerImages[0];
   const previewPath = firstImage?.thumbnail_path ?? firstImage?.storage_path;
-  const previewUrl = buildStorageProxyUrl(previewPath);
+  const previewUrl = getPublicImageUrl(previewPath, {
+    width: 720,
+    height: 400,
+    resize: 'cover'
+  });
 
   const activeImage = viewerImages[activeIndex];
   const activeImageUrl = useMemo(
-    () => buildStorageProxyUrl(activeImage?.storage_path ?? activeImage?.thumbnail_path),
+    () =>
+      getPublicImageUrl(activeImage?.storage_path ?? activeImage?.thumbnail_path, {
+        width: 1600,
+        height: 1600,
+        resize: 'contain',
+        quality: 90
+      }),
     [activeImage?.storage_path, activeImage?.thumbnail_path]
   );
 
@@ -194,7 +204,11 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                 onClick={(event) => event.stopPropagation()}
               >
                 {viewerImages.map((image, index) => {
-                  const thumbUrl = buildStorageProxyUrl(image.thumbnail_path ?? image.storage_path);
+                  const thumbUrl = getPublicImageUrl(image.thumbnail_path ?? image.storage_path, {
+                    width: 160,
+                    height: 160,
+                    resize: 'cover'
+                  });
                   return (
                     <button
                       key={image.id}
