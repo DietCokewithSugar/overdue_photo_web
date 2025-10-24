@@ -85,7 +85,9 @@ export function AdminPostsTable() {
                       {new Date(post.created_at).toLocaleString()}
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-xs text-neutral-400">{post.author_id.slice(0, 8)}…</td>
+                  <td className="px-4 py-4 text-xs text-neutral-400">
+                    {post.author?.display_name ?? `${post.author_id.slice(0, 8)}…`}
+                  </td>
                   <td className="px-4 py-4 text-xs text-neutral-400">
                     <div className="flex flex-col gap-1">
                       <span className="inline-flex w-fit rounded-full bg-white/10 px-3 py-1 capitalize text-neutral-200">

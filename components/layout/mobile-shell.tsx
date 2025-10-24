@@ -11,13 +11,11 @@ type NavItem = {
   label: string;
   href: Route;
   icon: typeof HomeIcon;
-  isPrimary?: boolean;
 };
 
 const NAV_ITEMS: readonly NavItem[] = [
   { label: '首页', href: '/' as Route, icon: HomeIcon },
   { label: '比赛', href: '/contests' as Route, icon: TrophyIcon },
-  { label: '发布', href: '/new-post' as Route, icon: PlusIcon, isPrimary: true },
   { label: '我的', href: '/profile' as Route, icon: UserIcon }
 ];
 
@@ -30,10 +28,14 @@ interface MobileShellProps {
 
 export function MobileShell({ children, title, topAction, showTopBar = true }: MobileShellProps) {
   const pathname = usePathname();
+  const isHomePage = pathname === '/';
+  const shouldShowTopBar = showTopBar && !isHomePage;
+  const shellBackground = isHomePage ? 'bg-white' : 'bg-neutral-950';
+  const mainPadding = isHomePage ? 'pb-36 pt-6' : 'px-5 pb-28';
 
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col bg-neutral-950">
-      {showTopBar && (
+    <div className={`relative mx-auto flex min-h-screen w-full max-w-md flex-col ${shellBackground}`}>
+      {shouldShowTopBar && (
         <header className="flex items-center justify-between gap-3 px-5 py-4">
           <div>
             <h1 className="text-lg font-semibold text-neutral-50">{title ?? '过期相册'}</h1>
@@ -43,28 +45,32 @@ export function MobileShell({ children, title, topAction, showTopBar = true }: M
         </header>
       )}
 
-      <main className="flex-1 overflow-y-auto px-5 pb-24">{children}</main>
+      <main className={`flex-1 overflow-y-auto ${mainPadding}`}>{children}</main>
 
-      <nav className="fixed bottom-0 left-0 right-0 mx-auto flex w-full max-w-md items-center justify-around border-t border-white/5 bg-black/80 px-6 py-3 backdrop-blur-lg">
+      <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-32px)] max-w-md -translate-x-1/2 items-center justify-between rounded-3xl border border-white/70 bg-white/70 px-6 py-3 shadow-lg shadow-black/10 backdrop-blur-xl">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
-          const baseClasses = item.isPrimary
-            ? 'flex h-12 w-12 items-center justify-center rounded-full bg-brand-500 text-neutral-50 shadow-lg shadow-brand-500/30'
-            : 'flex flex-col items-center text-xs';
+          const baseClasses = isActive
+            ? 'flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white shadow-lg shadow-neutral-900/30 transition-colors'
+            : 'flex h-12 w-12 items-center justify-center rounded-2xl text-neutral-500 transition-colors hover:text-neutral-800';
 
           return (
-            <Link key={item.href} href={item.href} className={baseClasses} prefetch>
-              <Icon size={item.isPrimary ? 24 : 22} className={isActive ? 'text-brand-400' : ''} />
-              {!item.isPrimary && (
-                <span className={`mt-1 ${isActive ? 'text-brand-400' : 'text-neutral-400'}`}>
-                  {item.label}
-                </span>
-              )}
+            <Link key={item.href} href={item.href} className={baseClasses} prefetch aria-label={item.label}>
+              <Icon size={22} />
             </Link>
           );
         })}
       </nav>
+
+      <Link
+        href={'/new-post' as Route}
+        aria-label="发布新作品"
+        prefetch
+        className="fixed bottom-20 left-1/2 z-50 flex h-16 w-16 -translate-x-1/2 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_20px_40px_-20px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neutral-900/30"
+      >
+        <PlusIcon size={28} />
+      </Link>
     </div>
   );
 }

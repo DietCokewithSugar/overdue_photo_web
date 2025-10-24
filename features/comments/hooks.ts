@@ -3,6 +3,7 @@
 import {
   useInfiniteQuery,
   useMutation,
+  useQuery,
   useQueryClient
 } from '@tanstack/react-query';
 
@@ -18,6 +19,14 @@ export const useCommentsQuery = (postId: string) =>
     enabled: Boolean(postId)
   });
 
+export const useCommentsPreview = (postId: string, limit = 5) =>
+  useQuery({
+    queryKey: ['comments-preview', postId, limit],
+    queryFn: () => fetchComments({ postId, limit }),
+    enabled: Boolean(postId),
+    staleTime: 1000 * 15
+  });
+
 export const useCreateComment = (postId: string) => {
   const queryClient = useQueryClient();
 
@@ -26,6 +35,8 @@ export const useCreateComment = (postId: string) => {
       createComment(postId, body, parentCommentId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', postId] });
+      queryClient.invalidateQueries({ queryKey: ['comments-preview', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     }
   });
 };
@@ -38,6 +49,8 @@ export const useUpdateComment = (postId: string, commentId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', postId] });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['comments-preview', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     }
   });
 };
@@ -50,6 +63,8 @@ export const useDeleteComment = (postId: string, commentId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', postId] });
       queryClient.invalidateQueries({ queryKey: ['post', postId] });
+      queryClient.invalidateQueries({ queryKey: ['comments-preview', postId] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
     }
   });
 };

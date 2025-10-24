@@ -10,6 +10,12 @@ export interface PostImage {
   created_at: string;
 }
 
+export interface PostAuthor {
+  id: string;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
 export interface PostDto {
   id: string;
   author_id: string;
@@ -24,6 +30,7 @@ export interface PostDto {
   images: PostImage[];
   likesCount: number;
   commentsCount: number;
+  author: PostAuthor | null;
 }
 
 export interface PaginatedPostsResponse {

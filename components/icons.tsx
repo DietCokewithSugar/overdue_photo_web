@@ -51,3 +51,27 @@ export const ImageIcon = createIcon(
     <path d="m21 16-3.5-3.5a1 1 0 0 0-1.4 0L11 17" />
   </>
 );
+
+export const HeartIcon = createIcon(
+  <path
+    d="M12 20s-6.3-3.35-8.28-6.32C1 10.07 3.02 6 6.66 6c1.78 0 3.11 1.01 3.97 2.24C11.23 7.01 12.56 6 14.34 6c3.64 0 5.66 4.07 2.94 7.68C18.3 16.65 12 20 12 20Z"
+    fill="currentColor"
+    stroke="currentColor"
+  />
+);
+
+export const MessageCircleIcon = createIcon(
+  <>
+    <path d="M21 11.5a8.38 8.38 0 0 1-1 3.8 8.5 8.5 0 0 1-7.5 4.7 8.38 8.38 0 0 1-3.8-1l-4.7 1 1-4.7A8.38 8.38 0 0 1 4.5 11 8.5 8.5 0 0 1 9.2 3.5 8.38 8.38 0 0 1 13 2.5h1a8.5 8.5 0 0 1 8 9Z" />
+    <path d="M8 11h8" />
+    <path d="M8 15h5" />
+  </>
+);
+
+export const ShareIcon = createIcon(
+  <>
+    <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7" />
+    <path d="m16 6-4-4-4 4" />
+    <path d="M12 2v14" />
+  </>
+);

@@ -24,9 +24,13 @@ export function PostsFeed({ filter }: PostsFeedProps) {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 gap-5">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-[360px] w-full" />
+      <div className="flex flex-col gap-8">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="flex flex-col gap-4">
+            <Skeleton className="h-[340px] w-full" />
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-2/3" />
+          </div>
         ))}
       </div>
     );
@@ -41,19 +45,24 @@ export function PostsFeed({ filter }: PostsFeedProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-5">
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-6">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} />
         ))}
       </div>
 
       {hasNextPage ? (
-        <Button onClick={() => fetchNextPage()} disabled={isFetchingNextPage} variant="secondary">
+        <Button
+          onClick={() => fetchNextPage()}
+          disabled={isFetchingNextPage}
+          variant="secondary"
+          className="mx-auto w-fit rounded-full border border-neutral-300 bg-white/80 px-6 py-2 text-sm font-medium text-neutral-700 shadow-sm hover:border-neutral-400 hover:bg-white"
+        >
           {isFetchingNextPage ? '加载中…' : '加载更多作品'}
         </Button>
       ) : (
-        <p className="text-center text-xs text-neutral-500">已经到底了，去创作新作品吧！</p>
+        <p className="text-center text-xs text-neutral-400">已经到底了，去创作新作品吧！</p>
       )}
     </div>
   );

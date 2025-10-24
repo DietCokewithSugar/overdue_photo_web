@@ -19,19 +19,35 @@ import {
 
 type PostRow = Database['public']['Tables']['posts']['Row'];
 type PostImageRow = Database['public']['Tables']['post_images']['Row'];
+type ProfileRow = Database['public']['Tables']['profiles']['Row'];
+
+export type PostAuthor = Pick<ProfileRow, 'id' | 'display_name' | 'avatar_url'>;
 
 export type PostWithImages = PostRow & {
   images: PostImageRow[];
   likesCount: number;
   commentsCount: number;
+  author: PostAuthor | null;
 };
 
-const mapPost = (post: PostRow, images: PostImageRow[], likes = 0, comments = 0): PostWithImages => ({
+const mapPost = (
+  post: PostRow,
+  images: PostImageRow[],
+  likes = 0,
+  comments = 0,
+  author?: PostAuthor | null
+): PostWithImages => ({
   ...post,
   images,
   likesCount: likes,
-  commentsCount: comments
+  commentsCount: comments,
+  author: author ?? null
 });
+
+type PostRecord = PostRow & {
+  post_images?: PostImageRow[];
+  profiles?: PostAuthor | null;
+};
 
 export const createPost = async (authorId: string, payload: CreatePostInput): Promise<PostWithImages> => {
   const input = createPostInputSchema.parse(payload);
@@ -78,7 +94,25 @@ export const createPost = async (authorId: string, payload: CreatePostInput): Pr
     throw new UnprocessableEntityError(imageError?.message ?? '保存帖子图片失败');
   }
 
-  return mapPost(post, images);
+  const { data: authorProfile, error: authorError } = await supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url')
+    .eq('id', authorId)
+    .maybeSingle();
+
+  if (authorError) {
+    throw new InternalServerError(authorError.message);
+  }
+
+  const author = authorProfile
+    ? {
+        id: authorProfile.id,
+        display_name: authorProfile.display_name,
+        avatar_url: authorProfile.avatar_url
+      }
+    : null;
+
+  return mapPost(post, images, 0, 0, author);
 };
 
 export const getPostById = async (postId: string): Promise<PostWithImages> => {
@@ -97,13 +131,18 @@ export const getPostById = async (postId: string): Promise<PostWithImages> => {
     throw new NotFoundError('帖子不存在');
   }
 
-  const [{ data: images, error: imagesError }, statsResult] = await Promise.all([
+  const [{ data: images, error: imagesError }, statsResult, authorResult] = await Promise.all([
     supabase
       .from('post_images')
       .select('*')
       .eq('post_id', post.id)
       .order('sort_order', { ascending: true }),
-    supabase.from('post_statistics').select('*').eq('post_id', post.id).maybeSingle()
+    supabase.from('post_statistics').select('*').eq('post_id', post.id).maybeSingle(),
+    supabase
+      .from('profiles')
+      .select('id, display_name, avatar_url')
+      .eq('id', post.author_id)
+      .maybeSingle()
   ]);
 
   if (imagesError || !images) {
@@ -114,9 +153,20 @@ export const getPostById = async (postId: string): Promise<PostWithImages> => {
     throw new InternalServerError(statsResult.error.message);
   }
 
-  const stats = statsResult.data;
+  if (authorResult.error) {
+    throw new InternalServerError(authorResult.error.message);
+  }
 
-  return mapPost(post, images, stats?.likes_count ?? 0, stats?.comments_count ?? 0);
+  const stats = statsResult.data;
+  const authorProfile = authorResult.data
+    ? {
+        id: authorResult.data.id,
+        display_name: authorResult.data.display_name,
+        avatar_url: authorResult.data.avatar_url
+      }
+    : null;
+
+  return mapPost(post, images, stats?.likes_count ?? 0, stats?.comments_count ?? 0, authorProfile);
 };
 
 const getPostStats = async (postId: string) => {
@@ -151,7 +201,7 @@ export const listPosts = async (options: ListPostsOptions = {}): Promise<PostWit
 
   let query = supabase
     .from('posts')
-    .select('*, post_images(*)')
+    .select('*, post_images(*), profiles!posts_author_id_fkey(id, display_name, avatar_url)')
     .order('published_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })
     .order('sort_order', { ascending: true, referencedTable: 'post_images' });
@@ -199,10 +249,19 @@ export const listPosts = async (options: ListPostsOptions = {}): Promise<PostWit
     (statsData ?? []).map((stat) => [stat.post_id ?? '', stat])
   );
 
-  return data.map((post) => {
-    const images = (post as PostRow & { post_images?: PostImageRow[] }).post_images ?? [];
+  return (data as PostRecord[]).map((post) => {
+    const { post_images, profiles, ...rest } = post;
+    const images = post_images ?? [];
     const stats = statsMap.get(post.id);
-    return mapPost(post as PostRow, images, stats?.likes_count ?? 0, stats?.comments_count ?? 0);
+    const author = profiles
+      ? {
+          id: profiles.id,
+          display_name: profiles.display_name,
+          avatar_url: profiles.avatar_url
+        }
+      : null;
+
+    return mapPost(rest as PostRow, images, stats?.likes_count ?? 0, stats?.comments_count ?? 0, author);
   });
 };
 
