@@ -43,9 +43,23 @@ export interface ContestEntryDto {
     display_name: string;
     avatar_url: string | null;
   } | null;
+  contest?: ContestSummaryDto | null;
 }
 
 export interface ContestEntriesResponse {
   items: ContestEntryDto[];
+  nextCursor: string | null;
+}
+
+export interface ContestSummaryDto {
+  id: string;
+  title: string;
+  submission_starts_at: string;
+  submission_ends_at: string;
+  status: 'draft' | 'published' | 'closed';
+}
+
+export interface UserContestEntriesResponse {
+  items: Array<ContestEntryDto & { contest: ContestSummaryDto }>;
   nextCursor: string | null;
 }

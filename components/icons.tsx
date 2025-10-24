@@ -52,6 +52,39 @@ export const ImageIcon = createIcon(
   </>
 );
 
+export const ArrowLeftIcon = createIcon(
+  <>
+    <path d="M19 12H5" />
+    <path d="m12 19-7-7 7-7" />
+  </>
+);
+
+export const DotsVerticalIcon = createIcon(
+  <>
+    <circle cx={12} cy={5} r={1.5} />
+    <circle cx={12} cy={12} r={1.5} />
+    <circle cx={12} cy={19} r={1.5} />
+  </>
+);
+
+export const DownloadIcon = createIcon(
+  <>
+    <path d="M12 3v12" />
+    <path d="m7 12 5 5 5-5" />
+    <path d="M5 19h14" />
+  </>
+);
+
+export const TrashIcon = createIcon(
+  <>
+    <path d="M3 6h18" />
+    <path d="M8 6V4h8v2" />
+    <path d="M19 6v13a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+  </>
+);
+
 export const HeartIcon = createIcon(
   <path
     d="M12 20s-6.3-3.35-8.28-6.32C1 10.07 3.02 6 6.66 6c1.78 0 3.11 1.01 3.97 2.24C11.23 7.01 12.56 6 14.34 6c3.64 0 5.66 4.07 2.94 7.68C18.3 16.65 12 20 12 20Z"

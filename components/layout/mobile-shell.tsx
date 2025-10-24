@@ -32,7 +32,11 @@ export function MobileShell({ children, title, topAction, showTopBar = true }: M
   const router = useRouter();
   const isHomePage = pathname === '/';
   const isImmersiveRoute =
-    isHomePage || pathname.startsWith('/posts') || pathname.startsWith('/contests') || pathname.startsWith('/new-post');
+    isHomePage ||
+    pathname.startsWith('/posts') ||
+    pathname.startsWith('/contests') ||
+    pathname.startsWith('/new-post') ||
+    pathname.startsWith('/profile');
   const shouldShowTopBar = showTopBar && !isImmersiveRoute;
   const shellBackground = isImmersiveRoute ? 'bg-white' : 'bg-neutral-950';
   const mainPadding = isImmersiveRoute ? 'pb-36 pt-6' : 'px-5 pb-28';
@@ -86,7 +90,7 @@ export function MobileShell({ children, title, topAction, showTopBar = true }: M
             type="button"
             onClick={handleFabClick}
             aria-label="发布新作品"
-            className="fixed bottom-24 right-6 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_20px_40px_-20px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neutral-900/30"
+            className="fixed bottom-24 right-10 z-50 flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-white shadow-[0_20px_40px_-20px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neutral-900/30"
           >
             <PlusIcon size={28} />
           </button>

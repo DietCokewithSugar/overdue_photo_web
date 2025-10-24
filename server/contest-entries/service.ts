@@ -26,6 +26,7 @@ type ProfileRow = Database['public']['Tables']['profiles']['Row'];
 type EntryRecord = EntryRow & {
   profiles?: Pick<ProfileRow, 'id' | 'display_name' | 'avatar_url'> | null;
   contest_entry_images?: EntryImageRow[] | null;
+  contests?: Pick<ContestRow, 'id' | 'title' | 'submission_starts_at' | 'submission_ends_at' | 'status'> | null;
 };
 
 export type ContestEntryWithImages = EntryRow & {
@@ -33,11 +34,41 @@ export type ContestEntryWithImages = EntryRow & {
   author: Pick<ProfileRow, 'id' | 'display_name' | 'avatar_url'> | null;
 };
 
+export type ContestSummary = Pick<ContestRow, 'id' | 'title' | 'submission_starts_at' | 'submission_ends_at' | 'status'>;
+
+export type ContestEntryWithContest = ContestEntryWithImages & {
+  contest: ContestSummary;
+};
+
 const mapEntry = (entry: EntryRecord): ContestEntryWithImages => ({
   ...entry,
   images: entry.contest_entry_images ?? [],
   author: entry.profiles ?? null
 });
+
+const mapEntryWithContest = (entry: EntryRecord): ContestEntryWithContest => {
+  const base = mapEntry(entry);
+  const contest = entry.contests;
+
+  return {
+    ...base,
+    contest: contest
+      ? {
+          id: contest.id,
+          title: contest.title,
+          submission_starts_at: contest.submission_starts_at,
+          submission_ends_at: contest.submission_ends_at,
+          status: contest.status
+        }
+      : {
+          id: base.contest_id,
+          title: '已归档比赛',
+          submission_starts_at: base.submitted_at,
+          submission_ends_at: base.submitted_at,
+          status: 'closed'
+        }
+  };
+};
 
 const ensureContestEditable = (contest: ContestRow, now = new Date()) => {
   const start = new Date(contest.submission_starts_at);
@@ -119,6 +150,11 @@ export interface ListContestEntriesOptions {
   cursor?: string;
 }
 
+export interface ListAuthorEntriesOptions {
+  limit?: number;
+  cursor?: string;
+}
+
 export const listContestEntries = async (
   contestId: string,
   options: ListContestEntriesOptions = {}
@@ -155,6 +191,39 @@ export const listContestEntries = async (
   }
 
   const items = (data as EntryRecord[]).map(mapEntry);
+  const nextCursor = items.length === limit ? items.at(-1)?.submitted_at ?? null : null;
+
+  return { items, nextCursor };
+};
+
+export const listContestEntriesByAuthor = async (
+  authorId: string,
+  options: ListAuthorEntriesOptions = {}
+): Promise<{ items: ContestEntryWithContest[]; nextCursor: string | null }> => {
+  const supabase = getSupabaseAdminClient();
+  const limit = Math.min(options.limit ?? 20, 50);
+
+  let query = supabase
+    .from('contest_entries')
+    .select(
+      '*, contest_entry_images(*), profiles!contest_entries_author_id_fkey(id, display_name, avatar_url), contests!contest_entries_contest_id_fkey(id, title, submission_starts_at, submission_ends_at, status)'
+    )
+    .eq('author_id', authorId)
+    .order('submitted_at', { ascending: false });
+
+  if (options.cursor) {
+    query = query.lt('submitted_at', options.cursor);
+  }
+
+  query = query.limit(limit);
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    throw new InternalServerError(error?.message ?? '加载投稿失败');
+  }
+
+  const items = (data as EntryRecord[]).map(mapEntryWithContest);
   const nextCursor = items.length === limit ? items.at(-1)?.submitted_at ?? null : null;
 
   return { items, nextCursor };

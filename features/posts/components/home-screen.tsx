@@ -14,9 +14,8 @@ export function HomeScreen() {
 
   return (
     <div className="flex flex-col gap-8 pb-32">
-      <div className="space-y-3 px-5">
-        <h2 className="text-2xl font-semibold text-neutral-900">发现精彩瞬间</h2>
-        <p className="text-sm text-neutral-500">沉浸式浏览最新的过期照片作品</p>
+      <div className="px-5 py-2">
+        <h2 className="text-2xl font-semibold text-neutral-900">过期相册</h2>
       </div>
 
       <div className="px-5">

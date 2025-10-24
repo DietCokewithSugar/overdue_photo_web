@@ -4,7 +4,8 @@ import type {
   ContestDto,
   ContestEntryDto,
   ContestEntriesResponse,
-  ContestListResponse
+  ContestListResponse,
+  UserContestEntriesResponse
 } from './types';
 
 export const fetchContests = async (params: {
@@ -56,4 +57,17 @@ export const submitContestEntry = async (
   apiFetch<ContestEntryDto>(`/api/contests/${contestId}/entries`, {
     method: 'POST',
     json: payload
+  });
+
+export const fetchUserContestEntries = async (params: { cursor?: string | null; limit?: number }) => {
+  const search = new URLSearchParams();
+  if (params.cursor) search.set('cursor', params.cursor);
+  if (params.limit) search.set('limit', String(params.limit));
+
+  return apiFetch<UserContestEntriesResponse>(`/api/profile/me/contest-entries?${search.toString()}`);
+};
+
+export const deleteContestEntry = async (entryId: string) =>
+  apiFetch<void>(`/api/contest-entries/${entryId}`, {
+    method: 'DELETE'
   });

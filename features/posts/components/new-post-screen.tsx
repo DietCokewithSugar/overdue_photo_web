@@ -144,15 +144,6 @@ export function NewPostScreen() {
     }
   };
 
-  const resetForm = () => {
-    images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-    setImages([]);
-    setTitle('');
-    setDescription('');
-    setErrorMessage(null);
-    setStep('editing');
-  };
-
   const totalSize = useMemo(() => {
     if (!images.length) return 0;
     return images.reduce((acc, image) => acc + image.file.size, 0) / 1024 / 1024;

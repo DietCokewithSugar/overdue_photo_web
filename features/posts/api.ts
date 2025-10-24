@@ -25,6 +25,15 @@ export const fetchPosts = async (params: FetchPostsParams): Promise<PaginatedPos
 export const fetchPostById = async (postId: string) =>
   apiFetch<PostDto>(`/api/posts/${postId}`);
 
+export const fetchUserPosts = async (params: { cursor?: string | null; limit?: number; status?: 'draft' | 'published' | 'archived' }) => {
+  const search = new URLSearchParams();
+  if (params.cursor) search.set('cursor', params.cursor);
+  if (params.limit) search.set('limit', String(params.limit));
+  if (params.status) search.set('status', params.status);
+
+  return apiFetch<PaginatedPostsResponse>(`/api/profile/me/posts?${search.toString()}`);
+};
+
 export const likePost = async (postId: string) =>
   apiFetch<{ likesCount: number }>(`/api/posts/${postId}/likes`, {
     method: 'POST'
@@ -90,3 +99,8 @@ export const createPost = async (payload: CreatePostPayload) => {
     json: body
   });
 };
+
+export const deletePost = async (postId: string) =>
+  apiFetch<void>(`/api/posts/${postId}`, {
+    method: 'DELETE'
+  });

@@ -156,8 +156,6 @@ export function PostCard({ post }: PostCardProps) {
               <Skeleton className="h-14 w-full rounded-lg bg-neutral-200/60" />
               <Skeleton className="h-14 w-full rounded-lg bg-neutral-200/60" />
             </>
-          ) : displayedComments.length === 0 ? (
-            <p className="text-sm text-neutral-400">还没有评论，来聊聊吧。</p>
           ) : (
             displayedComments.map((comment) => (
               <div key={comment.id} className="flex flex-col gap-1">
@@ -169,7 +167,7 @@ export function PostCard({ post }: PostCardProps) {
             ))
           )}
 
-          {hasMoreComments ? (
+          {!commentsLoading && displayedComments.length === 0 ? null : hasMoreComments ? (
             <Link href={href} className="text-xs font-medium text-neutral-500" prefetch>
               展开
             </Link>

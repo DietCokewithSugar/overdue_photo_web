@@ -8,8 +8,19 @@ import {
   type InfiniteData
 } from '@tanstack/react-query';
 
-import { fetchContestById, fetchContestEntries, fetchContests, submitContestEntry } from './api';
-import type { ContestEntriesResponse, ContestListResponse } from './types';
+import {
+  deleteContestEntry,
+  fetchContestById,
+  fetchContestEntries,
+  fetchContests,
+  fetchUserContestEntries,
+  submitContestEntry
+} from './api';
+import type {
+  ContestEntriesResponse,
+  ContestListResponse,
+  UserContestEntriesResponse
+} from './types';
 
 export const useContestsQuery = () =>
   useInfiniteQuery<ContestListResponse, Error, InfiniteData<ContestListResponse, string | null>, ['contests'], string | null>({
@@ -27,24 +38,38 @@ export const useContestQuery = (contestId: string) =>
     enabled: Boolean(contestId)
   });
 
-export const useContestEntriesQuery = (contestId: string) =>
+export const useContestEntriesQuery = (
+  contestId: string,
+  options: {
+    status?: 'pending' | 'approved' | 'rejected';
+    mine?: boolean;
+    limit?: number;
+    enabled?: boolean;
+  } = {}
+) =>
   useInfiniteQuery<
     ContestEntriesResponse,
     Error,
     InfiniteData<ContestEntriesResponse, string | null>,
-    ['contestEntries', string],
+    ['contestEntries', string, string, boolean],
     string | null
   >({
-    queryKey: ['contestEntries', contestId],
+    queryKey: [
+      'contestEntries',
+      contestId,
+      options.status ?? (options.mine ? 'all' : 'approved'),
+      Boolean(options.mine)
+    ],
     queryFn: ({ pageParam }) =>
       fetchContestEntries(contestId, {
-        status: 'approved',
+        status: options.status ?? (options.mine ? undefined : 'approved'),
         cursor: pageParam ?? undefined,
-        limit: 12
+        limit: options.limit ?? 12,
+        mine: options.mine
       }),
     initialPageParam: null,
     getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
-    enabled: Boolean(contestId)
+    enabled: Boolean(contestId) && (options.enabled ?? true)
   });
 
 export const useSubmitContestEntry = (contestId: string) => {
@@ -58,6 +83,29 @@ export const useSubmitContestEntry = (contestId: string) => {
       queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
       queryClient.invalidateQueries({ queryKey: ['contestEntries', contestId] });
       queryClient.invalidateQueries({ queryKey: ['contests'] });
+    }
+  });
+};
+
+export const useUserContestEntries = (enabled = true) =>
+  useInfiniteQuery<UserContestEntriesResponse, Error, InfiniteData<UserContestEntriesResponse, string | null>, ['myContestEntries'], string | null>({
+    queryKey: ['myContestEntries'],
+    queryFn: ({ pageParam }) =>
+      fetchUserContestEntries({ cursor: pageParam ?? undefined, limit: 12 }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+    enabled
+  });
+
+export const useDeleteContestEntryMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (entryId: string) => deleteContestEntry(entryId),
+    onSuccess: (_, entryId) => {
+      queryClient.invalidateQueries({ queryKey: ['myContestEntries'] });
+      queryClient.removeQueries({ queryKey: ['contestEntry', entryId] });
+      queryClient.invalidateQueries({ queryKey: ['contestEntries'] });
     }
   });
 };
