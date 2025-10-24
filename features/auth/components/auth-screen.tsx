@@ -12,12 +12,14 @@ type AuthMode = 'sign-in' | 'sign-up';
 interface AuthFormValues {
   email: string;
   password: string;
+  confirmPassword?: string;
   displayName?: string;
 }
 
 const defaultValues: AuthFormValues = {
   email: '',
   password: '',
+  confirmPassword: '',
   displayName: ''
 };
 
@@ -51,6 +53,12 @@ export function AuthScreen({ showAccountActions = true }: AuthScreenProps) {
     setMessage(null);
     try {
       if (mode === 'sign-up') {
+        if (values.password !== values.confirmPassword) {
+          setMessage('两次输入的密码不一致，请重新确认。');
+          form.setError('confirmPassword', { type: 'validate', message: '两次输入的密码不一致。' });
+          return;
+        }
+
         const result = await signUpMutation.mutateAsync({
           email: values.email,
           password: values.password,
@@ -133,6 +141,24 @@ export function AuthScreen({ showAccountActions = true }: AuthScreenProps) {
               {...form.register('password')}
             />
           </label>
+
+          {!isSignIn && (
+            <label className="flex flex-col gap-2 text-sm text-neutral-300">
+              <span className="text-xs uppercase tracking-wide text-neutral-500">确认密码</span>
+              <input
+                type="password"
+                required
+                minLength={8}
+                className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
+                {...form.register('confirmPassword')}
+              />
+              {form.formState.errors.confirmPassword ? (
+                <span className="text-xs text-red-400">
+                  {form.formState.errors.confirmPassword.message ?? '请再次输入相同的密码。'}
+                </span>
+              ) : null}
+            </label>
+          )}
 
           {!isSignIn && (
             <label className="flex flex-col gap-2 text-sm text-neutral-300">
