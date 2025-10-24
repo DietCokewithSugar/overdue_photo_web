@@ -1,10 +1,11 @@
 import { AdminShell } from '@/components/layout/admin-shell';
+import { AdminCommentsTable } from '@/features/admin/comments/comments-table';
 
 export default function AdminCommentsPage() {
   return (
-    <AdminShell title="评论管理" description="查看并维护评论内容">
-      <div className="rounded-3xl border border-dashed border-white/10 p-6 text-sm text-neutral-400">
-        评论管理功能建设中，敬请期待。
+    <AdminShell title="评论管理" description="审核并维护社区评论内容">
+      <div className="flex flex-col gap-6">
+        <AdminCommentsTable />
       </div>
     </AdminShell>
   );
