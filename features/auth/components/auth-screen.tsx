@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,14 @@ interface AuthScreenProps {
 export function AuthScreen({ showAccountActions = true }: AuthScreenProps) {
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [message, setMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  }, [mode]);
 
   const isSignIn = mode === 'sign-in';
   const headline = isSignIn ? '欢迎回来' : '注册新账号';
@@ -133,25 +140,43 @@ export function AuthScreen({ showAccountActions = true }: AuthScreenProps) {
           </label>
           <label className="flex flex-col gap-2 text-sm text-neutral-300">
             <span className="text-xs uppercase tracking-wide text-neutral-500">密码</span>
-            <input
-              type="password"
-              required
-              minLength={8}
-              className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
-              {...form.register('password')}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={8}
+                className="w-full rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 pr-16 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
+                {...form.register('password')}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((previous) => !previous)}
+                className="absolute inset-y-0 right-4 flex items-center text-xs font-medium text-neutral-400 transition hover:text-neutral-100"
+              >
+                {showPassword ? '隐藏' : '显示'}
+              </button>
+            </div>
           </label>
 
           {!isSignIn && (
             <label className="flex flex-col gap-2 text-sm text-neutral-300">
               <span className="text-xs uppercase tracking-wide text-neutral-500">确认密码</span>
-              <input
-                type="password"
-                required
-                minLength={8}
-                className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
-                {...form.register('confirmPassword')}
-              />
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  className="w-full rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 pr-16 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
+                  {...form.register('confirmPassword')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword((previous) => !previous)}
+                  className="absolute inset-y-0 right-4 flex items-center text-xs font-medium text-neutral-400 transition hover:text-neutral-100"
+                >
+                  {showConfirmPassword ? '隐藏' : '显示'}
+                </button>
+              </div>
               {form.formState.errors.confirmPassword ? (
                 <span className="text-xs text-red-400">
                   {form.formState.errors.confirmPassword.message ?? '请再次输入相同的密码。'}
