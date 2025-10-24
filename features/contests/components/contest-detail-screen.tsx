@@ -41,6 +41,10 @@ export function ContestDetailScreen({ contestId }: ContestDetailScreenProps) {
   const inSubmission = now >= start && now <= end;
   const posterUrl = contest.poster_path ? buildStorageProxyUrl(contest.poster_path) : null;
   const activeEntries = activeGroup === 'single' ? singleEntries : collectionEntries;
+  const singleLimitText =
+    contest.single_submission_limit > 0 ? contest.single_submission_limit : '不限';
+  const collectionLimitText =
+    contest.collection_submission_limit > 0 ? contest.collection_submission_limit : '不限';
 
   return (
     <div className="flex flex-col gap-6 pb-24">
@@ -62,7 +66,7 @@ export function ContestDetailScreen({ contestId }: ContestDetailScreenProps) {
           </div>
         )}
         <div className="flex items-center gap-3 text-xs text-neutral-500">
-          <span>投稿限制：单张 {contest.single_submission_limit || '不限'} 张 · 图集 {contest.collection_submission_limit || '不限'} 组</span>
+          <span>投稿限制：单张 {singleLimitText} 张 · 图集 {collectionLimitText} 组</span>
           <span>单张 ≤ {contest.single_file_size_limit_mb}MB</span>
         </div>
         <Link href={`/contests/${contestId}/submit`} className="w-full">

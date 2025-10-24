@@ -24,6 +24,10 @@ export function ContestCard({ contest }: ContestCardProps) {
   const start = new Date(contest.submission_starts_at).toLocaleDateString();
   const end = new Date(contest.submission_ends_at).toLocaleDateString();
   const posterUrl = contest.poster_path ? buildStorageProxyUrl(contest.poster_path) : null;
+  const singleLimitText =
+    contest.single_submission_limit > 0 ? contest.single_submission_limit : '不限';
+  const collectionLimitText =
+    contest.collection_submission_limit > 0 ? contest.collection_submission_limit : '不限';
 
   return (
     <Link
@@ -56,6 +60,11 @@ export function ContestCard({ contest }: ContestCardProps) {
 
         <div className="rounded-2xl bg-white/5 px-3 py-2 text-xs text-neutral-300">
           投稿时间：{start} - {end}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 px-3 py-2 text-xs text-neutral-300">
+          <span>单张限投 {singleLimitText}</span>
+          <span className="text-right">图集限投 {collectionLimitText}</span>
         </div>
 
         <div className="flex items-center justify-between text-xs text-neutral-500">
