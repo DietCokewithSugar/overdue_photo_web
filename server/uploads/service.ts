@@ -14,7 +14,8 @@ import {
 const RESOURCE_BUCKET_MAP: Record<CreateSignedUploadInput['resource'], StorageBucketKey> = {
   'post-image': 'posts',
   'contest-poster': 'contestPosters',
-  'contest-entry': 'contestEntries'
+  'contest-entry': 'contestEntries',
+  'profile-avatar': 'avatars'
 };
 
 const inferExtension = (fileName: string, contentType: string) => {

@@ -1,6 +1,6 @@
 import { apiFetch } from '@/lib/api';
 
-export type UploadResource = 'post-image' | 'contest-poster' | 'contest-entry';
+export type UploadResource = 'post-image' | 'contest-poster' | 'contest-entry' | 'profile-avatar';
 
 export interface SignedUploadResponse {
   bucket: string;

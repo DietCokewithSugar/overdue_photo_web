@@ -11,7 +11,8 @@ const serverEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   SUPABASE_STORAGE_BUCKET_POSTS: z.string().min(1),
   SUPABASE_STORAGE_BUCKET_CONTEST_POSTERS: z.string().min(1),
-  SUPABASE_STORAGE_BUCKET_CONTEST_ENTRIES: z.string().min(1)
+  SUPABASE_STORAGE_BUCKET_CONTEST_ENTRIES: z.string().min(1),
+  SUPABASE_STORAGE_BUCKET_AVATARS: z.string().min(1).optional()
 });
 
 const parseOrThrow = <T extends z.ZodTypeAny>(

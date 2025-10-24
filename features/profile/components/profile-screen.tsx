@@ -186,13 +186,22 @@ export function ProfileScreen() {
 
   const initials = getInitials(profile.display_name);
   const roleLabel = profile.role === 'admin' ? '管理员' : '普通用户';
+  const avatarUrl = getPublicImageUrl(profile.avatar_url, {
+    width: 200,
+    height: 200,
+    resize: 'cover'
+  });
 
   return (
     <div className="flex flex-col gap-8 pb-36 px-5">
       <section className="space-y-5">
         <div className="flex flex-col items-center gap-4 rounded-[28px] bg-white px-6 py-10 text-center text-neutral-700 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.35)]">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-900 text-lg font-semibold text-white">
-            {initials}
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-lg font-semibold text-white">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="用户头像" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </div>
           <div className="space-y-1">
             <h1 className="text-lg font-semibold text-neutral-900">{profile.display_name}</h1>
@@ -201,6 +210,11 @@ export function ProfileScreen() {
               {roleLabel}
             </span>
           </div>
+          <Link href={'/profile/edit' as Route} className="w-full">
+            <Button className="w-full rounded-full border border-neutral-300 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-100">
+              编辑资料
+            </Button>
+          </Link>
           <Button
             className="w-full rounded-full bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800"
             disabled={signOutMutation.isPending}

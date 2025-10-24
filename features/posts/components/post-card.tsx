@@ -83,6 +83,11 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   const authorInitials = getAuthorInitials(post);
+  const authorAvatarUrl = getPublicImageUrl(post.author?.avatar_url, {
+    width: 200,
+    height: 200,
+    resize: 'cover'
+  });
   const authorLabel = getAuthorLabel(post);
   const publishedDate = getPostPublishedDate(post);
 
@@ -113,8 +118,12 @@ export function PostCard({ post }: PostCardProps) {
       <div className="flex flex-col gap-6 px-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
-              {authorInitials}
+            <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-neutral-900 text-sm font-semibold text-white">
+              {authorAvatarUrl ? (
+                <img src={authorAvatarUrl} alt={authorLabel} className="h-full w-full object-cover" />
+              ) : (
+                authorInitials
+              )}
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-medium text-neutral-900">{authorLabel}</span>

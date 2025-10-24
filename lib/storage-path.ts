@@ -12,7 +12,11 @@ const BUCKET_NAME_MAP: Record<string, string> = {
   contestEntries:
     process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_CONTEST_ENTRIES ??
     process.env.NEXT_PUBLIC_SUPABASE_BUCKET_CONTEST_ENTRIES ??
-    'contest-entries'
+    'contest-entries',
+  avatars:
+    process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET_AVATARS ??
+    process.env.NEXT_PUBLIC_SUPABASE_BUCKET_AVATARS ??
+    'avatars'
 };
 
 type ResizeMode = 'cover' | 'contain';

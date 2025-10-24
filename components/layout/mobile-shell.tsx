@@ -78,7 +78,8 @@ export function MobileShell({ children, title, topAction, showTopBar = true }: M
       <nav className="fixed bottom-4 left-1/2 z-40 flex w-[calc(100%-32px)] max-w-md -translate-x-1/2 items-center justify-between rounded-3xl border border-white/70 bg-white/70 px-6 py-3 shadow-lg shadow-black/10 backdrop-blur-xl">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive =
+            pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`));
           const baseClasses = isActive
             ? 'flex h-12 w-12 items-center justify-center rounded-2xl bg-neutral-900 text-white shadow-lg shadow-neutral-900/30 transition-colors'
             : 'flex h-12 w-12 items-center justify-center rounded-2xl text-neutral-500 transition-colors hover:text-neutral-800';
