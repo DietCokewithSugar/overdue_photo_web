@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
       email,
       password,
       options: {
+        emailRedirectTo: 'https://www.overduealbum.com/login',
         data: {
           display_name: displayName
         }
