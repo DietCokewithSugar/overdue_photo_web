@@ -29,9 +29,10 @@ interface MobileShellProps {
 export function MobileShell({ children, title, topAction, showTopBar = true }: MobileShellProps) {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const shouldShowTopBar = showTopBar && !isHomePage;
-  const shellBackground = isHomePage ? 'bg-white' : 'bg-neutral-950';
-  const mainPadding = isHomePage ? 'pb-36 pt-6' : 'px-5 pb-28';
+  const isImmersiveRoute = isHomePage || pathname.startsWith('/posts');
+  const shouldShowTopBar = showTopBar && !isImmersiveRoute;
+  const shellBackground = isImmersiveRoute ? 'bg-white' : 'bg-neutral-950';
+  const mainPadding = isImmersiveRoute ? 'pb-36 pt-6' : 'px-5 pb-28';
 
   return (
     <div className={`relative mx-auto flex min-h-screen w-full max-w-md flex-col ${shellBackground}`}>

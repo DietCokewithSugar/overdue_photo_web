@@ -8,38 +8,13 @@ import { HeartIcon, ImageIcon, MessageCircleIcon } from '@/components/icons';
 import { useCommentsPreview, useCreateComment } from '@/features/comments/hooks';
 import type { PostDto } from '@/features/posts/types';
 import { useLikeMutation, useUnlikeMutation } from '@/features/posts/hooks';
+import { getAuthorInitials, getAuthorLabel, getPostPublishedDate } from '@/features/posts/utils';
 import { getPublicImageUrl } from '@/lib/storage-path';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PostCardProps {
   post: PostDto;
 }
-
-const getAuthorInitials = (post: PostDto) => {
-  const displayName = post.author?.display_name?.trim();
-  if (displayName) {
-    const chars = Array.from(displayName);
-    return chars.slice(0, 2).join('').toUpperCase();
-  }
-
-  const compact = post.author_id.replace(/-/g, '');
-  return compact.slice(0, 2).toUpperCase() || 'US';
-};
-
-const formatAuthorLabel = (post: PostDto) => {
-  const displayName = post.author?.display_name?.trim();
-  if (displayName) return displayName;
-
-  const compact = post.author_id.replace(/-/g, '');
-  return `用户 ${compact.slice(0, 6) || '访客'}`;
-};
-
-const formatDate = (isoString: string) =>
-  new Date(isoString).toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  });
 
 export function PostCard({ post }: PostCardProps) {
   const href = `/posts/${post.id}` as Route;
@@ -85,14 +60,14 @@ export function PostCard({ post }: PostCardProps) {
     }
   };
 
-  const handleFocusComment = () => {
-    if (showComposer) {
-      commentInputRef.current?.focus();
-      commentInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
-
-    setShowComposer(true);
+  const handleToggleComment = () => {
+    setShowComposer((prev) => {
+      if (prev) {
+        commentInputRef.current?.blur();
+        return false;
+      }
+      return true;
+    });
   };
 
   const handleSubmitComment = async (event: FormEvent<HTMLFormElement>) => {
@@ -108,9 +83,8 @@ export function PostCard({ post }: PostCardProps) {
   };
 
   const authorInitials = getAuthorInitials(post);
-  const authorLabel = formatAuthorLabel(post);
-  const timestamp = post.published_at ?? post.created_at;
-  const publishedDate = timestamp ? formatDate(timestamp) : '';
+  const authorLabel = getAuthorLabel(post);
+  const publishedDate = getPostPublishedDate(post);
 
   const commentCountDisplay = Math.max(post.commentsCount, comments.length);
 
@@ -167,20 +141,13 @@ export function PostCard({ post }: PostCardProps) {
 
             <button
               type="button"
-              onClick={handleFocusComment}
+              onClick={handleToggleComment}
               className="flex items-center gap-1.5 text-sm text-neutral-600 transition-colors hover:text-neutral-800"
             >
               <MessageCircleIcon size={22} />
               <span>{commentCountDisplay}</span>
             </button>
           </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <h2 className="text-lg font-semibold text-neutral-900">{post.title}</h2>
-          {post.content_plaintext ? (
-            <p className="text-sm leading-relaxed text-neutral-600">{post.content_plaintext}</p>
-          ) : null}
         </div>
 
         <div className="flex flex-col gap-3">
