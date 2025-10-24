@@ -1,12 +1,12 @@
 import { apiFetch } from '@/lib/api';
 
-interface SignUpPayload {
+export interface SignUpPayload extends Record<string, unknown> {
   email: string;
   password: string;
   displayName: string;
 }
 
-interface SignInPayload {
+export interface SignInPayload extends Record<string, unknown> {
   email: string;
   password: string;
 }

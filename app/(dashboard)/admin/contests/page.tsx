@@ -1,12 +1,11 @@
-import { ContestCreateForm } from '@/features/admin/contests/contest-create-form';
-import { AdminContestList } from '@/features/admin/contests/contest-list';
+import { AdminShell } from '@/components/layout/admin-shell';
 
 export default function AdminContestsPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold text-neutral-100">比赛管理</h2>
-      <ContestCreateForm />
-      <AdminContestList />
-    </div>
+    <AdminShell title="比赛管理" description="配置比赛与审核投稿">
+      <div className="rounded-3xl border border-dashed border-white/10 p-6 text-sm text-neutral-400">
+        比赛管理功能建设中，敬请期待。
+      </div>
+    </AdminShell>
   );
 }

@@ -12,7 +12,7 @@ const NAV_ITEMS = [
   { label: '评论管理', href: '/admin/comments' },
   { label: '比赛管理', href: '/admin/contests' },
   { label: '用户管理', href: '/admin/users' }
-] as const;
+] as const satisfies ReadonlyArray<{ label: string; href: string }>;
 
 interface AdminShellProps {
   title?: string;

@@ -1,10 +1,11 @@
-import { AdminPostsTable } from '@/features/admin/posts/posts-table';
+import { AdminShell } from '@/components/layout/admin-shell';
 
 export default function AdminPostsPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <h2 className="text-xl font-semibold text-neutral-100">帖子管理</h2>
-      <AdminPostsTable />
-    </div>
+    <AdminShell title="帖子管理" description="管理社区帖子与发布">
+      <div className="rounded-3xl border border-dashed border-white/10 p-6 text-sm text-neutral-400">
+        帖子管理功能建设中，敬请期待。
+      </div>
+    </AdminShell>
   );
 }
