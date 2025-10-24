@@ -34,42 +34,46 @@ export function ContestCard({ contest }: ContestCardProps) {
   return (
     <Link
       href={href}
-      className="flex flex-col overflow-hidden rounded-3xl border border-white/5 bg-neutral-900"
+      className="group block overflow-hidden rounded-[28px] bg-white shadow-[0_18px_45px_-28px_rgba(15,23,42,0.45)] transition-transform duration-300 hover:-translate-y-1 focus-visible:-translate-y-1 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-neutral-900/20"
       prefetch
     >
-      <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-brand-500/10 to-brand-500/5">
+      <div className="relative aspect-[16/9] w-full overflow-hidden bg-neutral-200">
         {posterUrl ? (
           <Image
             src={posterUrl}
             alt={contest.title}
             fill
-            className="object-cover"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(min-width: 768px) 320px, 100vw"
+            priority={false}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-brand-200/80">
+          <div className="absolute inset-0 flex items-center justify-center text-neutral-500">
             <TrophyIcon size={48} />
           </div>
         )}
-        <div className="absolute left-4 top-4 rounded-full bg-black/40 px-3 py-1 text-xs text-neutral-200">
+        <span className="absolute left-4 top-4 rounded-full bg-white/80 px-3 py-1 text-xs font-medium text-neutral-700 shadow-sm">
           {statusText[contest.status]}
-        </div>
+        </span>
       </div>
 
-      <div className="flex flex-col gap-3 px-4 py-4 text-sm">
-        <h3 className="text-lg font-semibold text-neutral-50">{contest.title}</h3>
-        <p className="line-clamp-2 text-neutral-400">{contest.description ?? '欢迎投稿你的特别作品，相遇光影故事。'}</p>
-
-        <div className="rounded-2xl bg-white/5 px-3 py-2 text-xs text-neutral-300">
-          投稿时间：{start} - {end}
+      <div className="flex flex-col gap-4 px-5 py-5">
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold text-neutral-900">{contest.title}</h3>
+          <p className="line-clamp-2 text-sm text-neutral-500">
+            {contest.description ?? '欢迎投稿你的特别作品，相遇光影故事。'}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 rounded-2xl bg-white/5 px-3 py-2 text-xs text-neutral-300">
-          <span>单张限投 {singleLimitText}</span>
-          <span className="text-right">图集限投 {collectionLimitText}</span>
+        <div className="flex flex-col gap-2 rounded-2xl bg-neutral-100 px-4 py-3 text-xs text-neutral-600">
+          <span>投稿时间：{start} - {end}</span>
+          <div className="flex items-center justify-between text-neutral-500">
+            <span>单张限投 {singleLimitText}</span>
+            <span>图集限投 {collectionLimitText}</span>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between text-xs text-neutral-500">
+        <div className="flex items-center justify-between text-xs text-neutral-400">
           <span>投稿 {contest.approvedEntries}/{contest.totalEntries}</span>
           <span>参与者 {contest.participantCount}</span>
         </div>

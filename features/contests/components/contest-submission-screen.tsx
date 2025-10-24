@@ -104,9 +104,7 @@ export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenPr
         await uploadToSignedUrl(signedUrl, image.file);
         const next: LocalImage = { ...image, status: 'uploaded', storagePath: path };
         uploaded.push(next);
-        setImages((prev) =>
-          prev.map((item) => (item.id === image.id ? next : item))
-        );
+        setImages((prev) => prev.map((item) => (item.id === image.id ? next : item)));
       } catch (err) {
         console.error(err);
         setImages((prev) =>
@@ -156,12 +154,12 @@ export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenPr
   };
 
   if (isLoading) {
-    return <Skeleton className="h-64" />;
+    return <Skeleton className="h-64 rounded-[28px]" />;
   }
 
   if (error || !contest) {
     return (
-      <div className="rounded-3xl bg-red-500/10 p-4 text-sm text-red-300">
+      <div className="rounded-[24px] bg-red-100/70 p-4 text-sm text-red-500">
         无法加载比赛信息。
       </div>
     );
@@ -173,91 +171,105 @@ export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenPr
   const isWindowOpen = now >= start && now <= end;
 
   return (
-    <form className="flex flex-col gap-6 pb-24" onSubmit={handleSubmit}>
-      <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold text-neutral-50">投稿：{contest.title}</h1>
-        <p className="text-sm text-neutral-400">
-          最多上传 {limit} 张图片，已选择 {images.length} 张（{totalSize.toFixed(2)} MB）。
-        </p>
-      </header>
+    <form className="flex flex-col gap-8 pb-36" onSubmit={handleSubmit}>
+      <section className="space-y-4 px-5">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold text-neutral-900">投稿：{contest.title}</h1>
+          <p className="text-sm text-neutral-500">
+            最多上传 {limit} 张图片，已选择 {images.length} 张（{totalSize.toFixed(2)} MB）。
+          </p>
+        </div>
 
-      <div className="flex gap-2 rounded-full bg-white/5 p-1 text-sm text-neutral-300">
-        <button
-          type="button"
-          onClick={() => setEntryType('single')}
-          className={`flex-1 rounded-full px-4 py-2 ${
-            entryType === 'single' ? 'bg-white text-neutral-900' : ''
-          }`}
-        >
-          单张组
-        </button>
-        <button
-          type="button"
-          onClick={() => setEntryType('collection')}
-          className={`flex-1 rounded-full px-4 py-2 ${
-            entryType === 'collection' ? 'bg-white text-neutral-900' : ''
-          }`}
-        >
-          图集组
-        </button>
-      </div>
+        <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white/80 p-1 text-sm shadow-sm">
+          <button
+            type="button"
+            onClick={() => setEntryType('single')}
+            className={`flex-1 rounded-full px-4 py-2 font-medium transition-colors ${
+              entryType === 'single'
+                ? 'bg-neutral-900 text-white shadow-sm'
+                : 'text-neutral-500 hover:text-neutral-800'
+            }`}
+          >
+            单张组
+          </button>
+          <button
+            type="button"
+            onClick={() => setEntryType('collection')}
+            className={`flex-1 rounded-full px-4 py-2 font-medium transition-colors ${
+              entryType === 'collection'
+                ? 'bg-neutral-900 text-white shadow-sm'
+                : 'text-neutral-500 hover:text-neutral-800'
+            }`}
+          >
+            图集组
+          </button>
+        </div>
 
-      <label className="flex flex-col gap-2 text-sm text-neutral-300">
-        作品标题
-        <input
-          value={title}
-          onChange={(event) => setTitle(event.target.value)}
-          className="rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none"
-          placeholder="你的作品名"
-          required
-        />
-      </label>
-
-      {entryType === 'collection' && (
-        <label className="flex flex-col gap-2 text-sm text-neutral-300">
-          图集描述
-          <textarea
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={4}
-            className="rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none"
-            placeholder="介绍你的图集故事、拍摄地点与灵感"
+        <label className="flex flex-col gap-2 text-sm text-neutral-600">
+          作品标题
+          <input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            className="rounded-[18px] border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+            placeholder="你的作品名"
             required
           />
         </label>
-      )}
 
-      <section className="flex flex-col gap-3 rounded-3xl border border-white/5 p-4">
-        <div className="flex items-center justify-between text-sm text-neutral-300">
-          <span>上传作品（{images.length}/{limit}）</span>
-          <span className="text-xs text-neutral-500">单张 ≤ {contest.single_file_size_limit_mb}MB</span>
-        </div>
+        {entryType === 'collection' && (
+          <label className="flex flex-col gap-2 text-sm text-neutral-600">
+            图集描述
+            <textarea
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={4}
+              className="rounded-[18px] border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-900 outline-none focus:border-neutral-400"
+              placeholder="介绍你的图集故事、拍摄地点与灵感"
+              required
+            />
+          </label>
+        )}
+      </section>
 
-        <label className="flex h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/10 bg-neutral-900 text-sm text-neutral-400">
-          点击或拖拽图片到此处
-          <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
-        </label>
+      <section className="flex flex-col gap-4 px-5">
+        <div className="flex flex-col gap-3 rounded-[24px] border border-dashed border-neutral-200 bg-neutral-50 px-5 py-5">
+          <div className="flex items-center justify-between text-sm text-neutral-600">
+            <span>上传作品（{images.length}/{limit}）</span>
+            <span className="text-xs text-neutral-400">单张 ≤ {contest.single_file_size_limit_mb}MB</span>
+          </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {images.map((image) => (
-            <div key={image.id} className="relative overflow-hidden rounded-2xl">
-              <img src={image.previewUrl} alt="预览" className="h-28 w-full object-cover" />
-              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/50 px-2 py-1 text-xs text-neutral-200">
-                <span>{(image.file.size / 1024 / 1024).toFixed(2)} MB</span>
-                <button type="button" className="text-red-300" onClick={() => handleRemove(image.id)}>
-                  删除
-                </button>
-              </div>
+          <label className="flex h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-neutral-300 bg-white text-sm text-neutral-500 transition hover:border-neutral-400">
+            点击或拖拽图片到此处
+            <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+          </label>
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 text-xs text-neutral-500">
+              {images.map((image) => (
+                <div key={image.id} className="relative overflow-hidden rounded-[18px] bg-neutral-200">
+                  <img src={image.previewUrl} alt="预览" className="h-32 w-full object-cover" />
+                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-black/45 px-2 py-1 text-neutral-200">
+                    <span>{(image.file.size / 1024 / 1024).toFixed(2)} MB</span>
+                    <button type="button" className="text-red-200" onClick={() => handleRemove(image.id)}>
+                      删除
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       </section>
 
-      <footer className="flex flex-col gap-3">
-        <Button type="submit" disabled={!isWindowOpen || !canSubmit || submitEntry.isPending}>
+      <footer className="flex flex-col gap-3 px-5">
+        <Button
+          type="submit"
+          disabled={!isWindowOpen || !canSubmit || submitEntry.isPending}
+          className="rounded-full bg-neutral-900 text-sm font-medium text-white hover:bg-neutral-800 disabled:bg-neutral-200 disabled:text-neutral-400"
+        >
           {submitEntry.isPending ? '提交中…' : isWindowOpen ? '提交作品' : '不在投稿时间内'}
         </Button>
-        {message && <p className="text-center text-xs text-neutral-400">{message}</p>}
+        {message && <p className="text-center text-xs text-neutral-500">{message}</p>}
       </footer>
     </form>
   );

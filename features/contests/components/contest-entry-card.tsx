@@ -1,16 +1,35 @@
 'use client';
 
+import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Image from 'next/image';
 
-import type { ContestEntryDto } from '@/features/contests/types';
 import { ImageIcon } from '@/components/icons';
+import type { ContestEntryDto } from '@/features/contests/types';
 import { getPublicImageUrl } from '@/lib/storage-path';
 
 interface ContestEntryCardProps {
   entry: ContestEntryDto;
 }
+
+const getInitials = (entry: ContestEntryDto) => {
+  const displayName = entry.author?.display_name?.trim();
+  if (displayName) {
+    const chars = Array.from(displayName);
+    return chars.slice(0, 2).join('').toUpperCase();
+  }
+
+  const compact = entry.author_id.replace(/-/g, '');
+  return compact.slice(0, 2).toUpperCase() || 'US';
+};
+
+const getAuthorLabel = (entry: ContestEntryDto) => {
+  const displayName = entry.author?.display_name?.trim();
+  if (displayName) return displayName;
+
+  const compact = entry.author_id.replace(/-/g, '');
+  return `用户 ${compact.slice(0, 6) || '访客'}`;
+};
 
 export function ContestEntryCard({ entry }: ContestEntryCardProps) {
   const viewerImages = entry.images ?? [];
@@ -20,8 +39,8 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
   const firstImage = viewerImages[0];
   const previewPath = firstImage?.thumbnail_path ?? firstImage?.storage_path;
   const previewUrl = getPublicImageUrl(previewPath, {
-    width: 720,
-    height: 400,
+    width: 1000,
+    height: 1200,
     resize: 'cover'
   });
 
@@ -78,84 +97,77 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
     document.addEventListener('keydown', handleKeydown);
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+
     return () => {
       document.removeEventListener('keydown', handleKeydown);
       document.body.style.overflow = originalOverflow;
     };
   }, [viewerOpen, viewerImages.length, closeViewer, showPrev, showNext]);
 
+  const initials = getInitials(entry);
+  const displayName = getAuthorLabel(entry);
+
   return (
     <>
-      <article className="flex flex-col gap-3 rounded-3xl border border-white/5 bg-neutral-900/60 p-4 text-sm text-neutral-200">
-        <header className="flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-base font-semibold text-neutral-50">{entry.title}</span>
-            <span className="text-xs text-neutral-500">
-              {entry.author?.display_name ?? '匿名'} · {new Date(entry.submitted_at).toLocaleDateString()}
-            </span>
+      <article className="flex flex-col gap-4">
+        <div className="flex items-center gap-3 px-1">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-900 text-sm font-semibold text-white">
+              {initials}
+            </div>
+            <span className="text-sm font-medium text-neutral-900">{displayName}</span>
           </div>
-          <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-neutral-400">
-            {entry.entry_type === 'single' ? '单张组' : '图集组'}
-          </span>
-        </header>
+        </div>
+
+        <h3 className="px-1 text-lg font-semibold text-neutral-900">{entry.title}</h3>
 
         <button
           type="button"
           onClick={() => openViewer(0)}
-          className="group relative h-40 w-full overflow-hidden rounded-2xl bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-300/60"
+          className="block w-full focus:outline-none focus-visible:ring-4 focus-visible:ring-neutral-900/20"
           aria-label={`查看作品《${entry.title}》大图`}
         >
           {previewUrl ? (
-            <>
-              <Image
-                src={previewUrl}
-                alt={entry.title}
-                fill
-                className="object-cover transition-transform duration-200 group-hover:scale-105"
-                sizes="(min-width: 768px) 300px, 100vw"
-                priority={false}
-              />
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1 bg-black/40 px-3 py-2 text-xs text-neutral-200">
-                <ImageIcon size={18} />
-                <span>{viewerImages.length} 张作品</span>
-              </div>
-            </>
+            <img
+              src={previewUrl}
+              alt={entry.title}
+              className="w-full bg-neutral-200 object-cover"
+              loading="lazy"
+            />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-neutral-500">
-              暂无预览
+            <div className="flex h-48 w-full items-center justify-center bg-neutral-200 text-neutral-500">
+              <ImageIcon size={40} />
             </div>
           )}
-        </button>
 
-        {entry.description && (
-          <p className="text-sm text-neutral-400">{entry.description}</p>
-        )}
+        </button>
       </article>
 
       {viewerOpen &&
         typeof document !== 'undefined' &&
         createPortal(
-          <div
-            className="fixed inset-0 z-50 flex flex-col bg-black/90"
-            onClick={closeViewer}
-          >
+          <div className="fixed inset-0 z-50 flex flex-col bg-black/90" onClick={closeViewer}>
             <header
-              className="flex items-start justify-between px-4 pt-4 text-sm text-neutral-200"
+              className="flex items-start justify-between px-4 pt-4 text-sm text-white"
               onClick={(event) => event.stopPropagation()}
             >
-              <span className="max-w-[70%] truncate text-base font-medium">{entry.title}</span>
+              <div className="flex flex-col gap-1">
+                <span className="text-base font-semibold">{entry.title}</span>
+                <span className="text-xs text-white/70">{displayName}</span>
+              </div>
               <button
                 type="button"
                 onClick={(event) => {
                   event.stopPropagation();
                   closeViewer();
                 }}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-2xl text-neutral-50 hover:bg-white/20"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white/15 text-2xl text-white hover:bg-white/25"
                 aria-label="关闭"
               >
                 ×
               </button>
             </header>
+
             <div
               className="relative flex flex-1 items-center justify-center px-4 pb-6"
               onClick={(event) => event.stopPropagation()}
@@ -164,7 +176,7 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                 <button
                   type="button"
                   onClick={showPrev}
-                  className="absolute left-6 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-xl text-neutral-100 hover:bg-white/20"
+                  className="absolute left-6 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25"
                   aria-label="上一张"
                 >
                   ‹
@@ -181,7 +193,7 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                   priority
                 />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-neutral-400">
+                <div className="flex h-full w-full items-center justify-center text-neutral-300">
                   无法加载图片
                 </div>
               )}
@@ -190,7 +202,7 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                 <button
                   type="button"
                   onClick={showNext}
-                  className="absolute right-6 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-xl text-neutral-100 hover:bg-white/20"
+                  className="absolute right-6 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-xl text-white hover:bg-white/25"
                   aria-label="下一张"
                 >
                   ›
@@ -209,13 +221,15 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                     height: 160,
                     resize: 'cover'
                   });
+                  const isActive = index === activeIndex;
+
                   return (
                     <button
                       key={image.id}
                       type="button"
                       onClick={() => setActiveIndex(index)}
                       className={`relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border ${
-                        index === activeIndex ? 'border-white' : 'border-transparent'
+                        isActive ? 'border-white' : 'border-transparent'
                       }`}
                       aria-label={`第 ${index + 1} 张`}
                     >
@@ -228,7 +242,7 @@ export function ContestEntryCard({ entry }: ContestEntryCardProps) {
                           sizes="64px"
                         />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center text-xs text-neutral-400">
+                        <div className="flex h-full w-full items-center justify-center text-xs text-neutral-200">
                           缺失
                         </div>
                       )}
