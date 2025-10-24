@@ -67,6 +67,9 @@ export const useChangePassword = () =>
     mutationFn: (payload: ChangePasswordPayload) =>
       apiFetch<{ message: string }>('/api/profile/change-password', {
         method: 'POST',
-        json: payload
+        json: {
+          currentPassword: payload.currentPassword,
+          newPassword: payload.newPassword
+        }
       })
   });
