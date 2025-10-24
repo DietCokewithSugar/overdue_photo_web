@@ -7,6 +7,7 @@ import { ChangeEvent, ReactNode, useRef } from 'react';
 
 import { HomeIcon, PlusIcon, TrophyIcon, UserIcon } from '@/components/icons';
 import { setPendingNewPostFiles } from '@/features/posts/state/new-post-selection';
+import { useProfile } from '@/features/profile/hooks';
 
 type NavItem = {
   label: string;
@@ -30,6 +31,7 @@ interface MobileShellProps {
 export function MobileShell({ children, title, topAction, showTopBar = true }: MobileShellProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: profile, isLoading: isProfileLoading } = useProfile();
   const isHomePage = pathname === '/';
   const isImmersiveRoute =
     isHomePage ||
@@ -43,6 +45,11 @@ export function MobileShell({ children, title, topAction, showTopBar = true }: M
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleFabClick = () => {
+    if (isProfileLoading) return;
+    if (!profile) {
+      router.push('/login');
+      return;
+    }
     fileInputRef.current?.click();
   };
 

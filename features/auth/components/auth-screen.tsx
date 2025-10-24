@@ -21,10 +21,20 @@ const defaultValues: AuthFormValues = {
   displayName: ''
 };
 
-export function AuthScreen() {
+interface AuthScreenProps {
+  showAccountActions?: boolean;
+}
+
+export function AuthScreen({ showAccountActions = true }: AuthScreenProps) {
   const [mode, setMode] = useState<AuthMode>('sign-in');
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
+
+  const isSignIn = mode === 'sign-in';
+  const headline = isSignIn ? '欢迎回来' : '注册新账号';
+  const subHeadline = isSignIn
+    ? '使用你的邮箱和密码进入过期相册。'
+    : '创建账户，开始与朋友分享你的光影故事。';
 
   const form = useForm<AuthFormValues>({
     defaultValues
@@ -72,101 +82,108 @@ export function AuthScreen() {
   });
 
   return (
-    <div className="flex flex-col gap-8">
-      <header className="flex flex-col gap-3 text-center">
-        <h1 className="text-2xl font-semibold text-neutral-50">
-          {mode === 'sign-in' ? '登录过期相册' : '注册新账号'}
-        </h1>
-        <p className="text-sm text-neutral-400">
-          {mode === 'sign-in'
-            ? '输入邮箱和密码进入你的摄影世界。'
-            : '创建账户，和更多摄影爱好者分享作品。'}
-        </p>
-      </header>
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-8 rounded-[36px] border border-neutral-800 bg-neutral-950 px-6 py-10 text-neutral-100 shadow-[0_40px_120px_rgba(0,0,0,0.45)]">
+        <header className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="text-xs uppercase tracking-[0.35em] text-neutral-500">Expired Album</span>
+            <h1 className="text-3xl font-medium text-white">{headline}</h1>
+          </div>
+          <p className="text-sm leading-relaxed text-neutral-400">{subHeadline}</p>
+        </header>
 
-      <div className="flex rounded-full bg-white/5 p-1 text-sm text-neutral-300">
-        <button
-          type="button"
-          onClick={() => setMode('sign-in')}
-          className={`flex-1 rounded-full px-4 py-2 ${mode === 'sign-in' ? 'bg-white text-neutral-900' : ''}`}
-        >
-          登录
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('sign-up')}
-          className={`flex-1 rounded-full px-4 py-2 ${mode === 'sign-up' ? 'bg-white text-neutral-900' : ''}`}
-        >
-          注册
-        </button>
-      </div>
+        <div className="flex items-center rounded-full border border-neutral-800 bg-neutral-900/80 p-1 text-sm text-neutral-400">
+          <button
+            type="button"
+            onClick={() => setMode('sign-in')}
+            className={`flex-1 rounded-full px-4 py-2 font-medium transition ${
+              isSignIn ? 'bg-white text-neutral-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)]' : 'hover:text-neutral-200'
+            }`}
+          >
+            登录
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode('sign-up')}
+            className={`flex-1 rounded-full px-4 py-2 font-medium transition ${
+              !isSignIn ? 'bg-white text-neutral-950 shadow-[0_8px_20px_rgba(0,0,0,0.35)]' : 'hover:text-neutral-200'
+            }`}
+          >
+            注册
+          </button>
+        </div>
 
-      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
-        <label className="flex flex-col gap-2 text-sm text-neutral-300">
-          邮箱
-          <input
-            type="email"
-            required
-            className="rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none"
-            {...form.register('email')}
-          />
-        </label>
-        <label className="flex flex-col gap-2 text-sm text-neutral-300">
-          密码
-          <input
-            type="password"
-            required
-            minLength={8}
-            className="rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none"
-            {...form.register('password')}
-          />
-        </label>
-
-        {mode === 'sign-up' && (
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-2 text-sm text-neutral-300">
-            昵称
+            <span className="text-xs uppercase tracking-wide text-neutral-500">邮箱</span>
             <input
-              type="text"
-              placeholder="展示用昵称"
-              className="rounded-2xl bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none"
-              {...form.register('displayName')}
+              type="email"
+              required
+              className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
+              {...form.register('email')}
             />
           </label>
-        )}
+          <label className="flex flex-col gap-2 text-sm text-neutral-300">
+            <span className="text-xs uppercase tracking-wide text-neutral-500">密码</span>
+            <input
+              type="password"
+              required
+              minLength={8}
+              className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition focus:border-neutral-600 focus:ring-0"
+              {...form.register('password')}
+            />
+          </label>
 
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting
-            ? mode === 'sign-in'
-              ? '登录中…'
-              : '注册中…'
-            : mode === 'sign-in'
-              ? '登录'
-              : '注册'}
-        </Button>
-      </form>
+          {!isSignIn && (
+            <label className="flex flex-col gap-2 text-sm text-neutral-300">
+              <span className="text-xs uppercase tracking-wide text-neutral-500">昵称</span>
+              <input
+                type="text"
+                placeholder="展示用昵称"
+                className="rounded-2xl border border-neutral-800 bg-neutral-900 px-4 py-3 text-sm text-neutral-50 outline-none transition placeholder:text-neutral-500 focus:border-neutral-600 focus:ring-0"
+                {...form.register('displayName')}
+              />
+            </label>
+          )}
 
-      <div className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-neutral-300">
-        <span>已登录？</span>
-        <Button
-          type="button"
-          variant="secondary"
-          disabled={signOutMutation.isPending}
-          onClick={() => {
-            setMessage(null);
-            signOutMutation.mutate(undefined, {
-              onSuccess: () => setMessage('已退出登录。'),
-              onError: (error) =>
-                setMessage(error instanceof Error ? error.message : '退出登录失败')
-            });
-          }}
-        >
-          退出当前账号
-        </Button>
-      </div>
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="h-12 rounded-full bg-white text-neutral-950 transition hover:bg-neutral-200 disabled:bg-neutral-300 disabled:text-neutral-500"
+          >
+            {isSubmitting ? (isSignIn ? '登录中…' : '注册中…') : isSignIn ? '登录' : '注册'}
+          </Button>
+        </form>
+      </section>
 
-      {message && (
-        <p className="rounded-3xl bg-brand-500/10 px-4 py-3 text-sm text-brand-200">{message}</p>
-      )}
+      {showAccountActions ? (
+        <section className="flex flex-col gap-4 rounded-[28px] border border-neutral-800 bg-neutral-950/90 px-6 py-6 text-sm text-neutral-400 backdrop-blur">
+          <span className="font-medium text-neutral-100">已登录其他账号？</span>
+          <button
+            type="button"
+            className="self-start rounded-full border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-200 transition hover:border-neutral-500 hover:text-white"
+            disabled={signOutMutation.isPending}
+            onClick={() => {
+              setMessage(null);
+              signOutMutation.mutate(undefined, {
+                onSuccess: () => setMessage('已退出登录。'),
+                onError: (error) =>
+                  setMessage(error instanceof Error ? error.message : '退出登录失败')
+              });
+            }}
+          >
+            {signOutMutation.isPending ? '退出中…' : '退出当前账号'}
+          </button>
+
+          <p className="text-xs text-neutral-500">如需切换账户，可先退出并使用新的邮箱登录。</p>
+        </section>
+      ) : null}
+
+      {message ? (
+        <p className="rounded-[28px] border border-neutral-700 bg-neutral-950 px-6 py-3 text-sm text-neutral-100">
+          {message}
+        </p>
+      ) : null}
     </div>
   );
 }
