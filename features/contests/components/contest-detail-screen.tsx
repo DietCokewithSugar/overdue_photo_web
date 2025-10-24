@@ -130,7 +130,7 @@ export function ContestDetailScreen({ contestId }: ContestDetailScreenProps) {
             </div>
 
             {activeEntries.length ? (
-              <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-12">
                 {activeEntries.map((entry) => (
                   <ContestEntryCard key={entry.id} entry={entry} />
                 ))}
