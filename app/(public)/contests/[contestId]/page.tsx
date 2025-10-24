@@ -3,13 +3,15 @@ import { notFound } from 'next/navigation';
 import { ContestDetailScreen } from '@/features/contests/components/contest-detail-screen';
 
 interface ContestPageProps {
-  params: { contestId: string };
+  params: Promise<{ contestId: string }>;
 }
 
-export default function ContestPage({ params }: ContestPageProps) {
-  if (!params.contestId) {
+export default async function ContestPage({ params }: ContestPageProps) {
+  const { contestId } = await params;
+
+  if (!contestId) {
     notFound();
   }
 
-  return <ContestDetailScreen contestId={params.contestId} />;
+  return <ContestDetailScreen contestId={contestId} />;
 }

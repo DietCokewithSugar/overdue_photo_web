@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getSupabaseAdminClient } from '@/lib/supabase';
+import { getSupabaseAdminClient, STORAGE_BUCKETS } from '@/lib/supabase';
+
+const bucketNameFrom = (bucketOrKey: string) =>
+  (STORAGE_BUCKETS as Record<string, string>)[bucketOrKey] ?? bucketOrKey;
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,8 +15,9 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = getSupabaseAdminClient();
+    const bucketName = bucketNameFrom(bucket);
     const { data, error } = await supabase.storage
-      .from(bucket)
+      .from(bucketName)
       .createSignedUrl(path, 60);
 
     if (error || !data?.signedUrl) {

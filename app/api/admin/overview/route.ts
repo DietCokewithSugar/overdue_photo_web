@@ -10,20 +10,15 @@ export async function GET(_: NextRequest) {
 
     const supabase = getSupabaseAdminClient();
 
-    const [posts, contests, pendingEntries, comments] = await Promise.all([
+    const [posts, contests, comments] = await Promise.all([
       supabase.from('posts').select('*', { head: true, count: 'exact' }),
       supabase.from('contests').select('*', { head: true, count: 'exact' }),
-      supabase
-        .from('contest_entries')
-        .select('*', { head: true, count: 'exact' })
-        .eq('status', 'pending'),
       supabase.from('post_comments').select('*', { head: true, count: 'exact' })
     ]);
 
     return success({
       posts: posts.count ?? 0,
       contests: contests.count ?? 0,
-      pendingEntries: pendingEntries.count ?? 0,
       comments: comments.count ?? 0
     });
   } catch (error) {

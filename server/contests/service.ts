@@ -115,7 +115,7 @@ export const createContest = async (
       title: input.title,
       slug: input.slug,
       description: input.description ?? null,
-      poster_path: input.posterPath,
+      poster_path: input.posterPath ?? null,
       submission_starts_at: input.submissionStartsAt,
       submission_ends_at: input.submissionEndsAt,
       single_submission_limit: input.singleSubmissionLimit,
@@ -172,8 +172,10 @@ export const updateContest = async (
   const updatePayload = {
     title: input.title ?? existing.data.title,
     slug: input.slug ?? existing.data.slug,
-    description: input.description ?? existing.data.description,
-    poster_path: input.posterPath ?? existing.data.poster_path,
+    description:
+      input.description === undefined ? existing.data.description : input.description,
+    poster_path:
+      input.posterPath === undefined ? existing.data.poster_path : input.posterPath ?? null,
     submission_starts_at: input.submissionStartsAt ?? existing.data.submission_starts_at,
     submission_ends_at: input.submissionEndsAt ?? existing.data.submission_ends_at,
     single_submission_limit: input.singleSubmissionLimit ?? existing.data.single_submission_limit,

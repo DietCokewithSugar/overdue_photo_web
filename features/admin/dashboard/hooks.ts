@@ -7,7 +7,6 @@ import { apiFetch } from '@/lib/api';
 export interface OverviewStats {
   posts: number;
   contests: number;
-  pendingEntries: number;
   comments: number;
 }
 

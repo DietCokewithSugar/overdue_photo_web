@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -23,6 +24,7 @@ interface ContestSubmissionScreenProps {
 }
 
 export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenProps) {
+  const router = useRouter();
   const { data: contest, isLoading, error } = useContestQuery(contestId);
   const submitEntry = useSubmitContestEntry(contestId);
 
@@ -142,7 +144,11 @@ export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenPr
         }))
       });
 
-      setMessage('投稿成功，请耐心等待审核。');
+      setMessage('投稿成功');
+      setTimeout(() => {
+        router.replace(`/contests/${contestId}`);
+        router.refresh();
+      }, 800);
     } catch (err) {
       console.error(err);
       setMessage('投稿失败，请稍后重试。');

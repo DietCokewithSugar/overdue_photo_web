@@ -1,6 +1,12 @@
 'use client';
 
-import { useInfiniteQuery, useMutation, useQuery, type InfiniteData } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type InfiniteData
+} from '@tanstack/react-query';
 
 import { fetchContestById, fetchContestEntries, fetchContests, submitContestEntry } from './api';
 import type { ContestEntriesResponse, ContestListResponse } from './types';
@@ -41,9 +47,17 @@ export const useContestEntriesQuery = (contestId: string) =>
     enabled: Boolean(contestId)
   });
 
-export const useSubmitContestEntry = (contestId: string) =>
-  useMutation({
+export const useSubmitContestEntry = (contestId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
     mutationFn: (
       payload: Parameters<typeof submitContestEntry>[1]
-    ) => submitContestEntry(contestId, payload)
+    ) => submitContestEntry(contestId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contest', contestId] });
+      queryClient.invalidateQueries({ queryKey: ['contestEntries', contestId] });
+      queryClient.invalidateQueries({ queryKey: ['contests'] });
+    }
   });
+};

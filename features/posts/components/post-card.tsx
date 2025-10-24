@@ -5,13 +5,7 @@ import type { Route } from 'next';
 
 import type { PostDto } from '@/features/posts/types';
 import { ImageIcon } from '@/components/icons';
-
-const buildImageUrl = (storagePath: string) => {
-  const [bucket, ...rest] = storagePath.split('/');
-  const path = rest.join('/');
-  const params = new URLSearchParams({ bucket, path });
-  return `/api/uploads/proxy?${params.toString()}` as Route;
-};
+import { buildStorageProxyUrl } from '@/lib/storage-path';
 
 interface PostCardProps {
   post: PostDto;
@@ -19,6 +13,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const href = `/posts/${post.id}` as Route;
+  const coverUrl = buildStorageProxyUrl(post.images?.[0]?.storage_path) as Route | null;
 
   return (
     <Link
@@ -27,9 +22,9 @@ export function PostCard({ post }: PostCardProps) {
       prefetch
     >
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-900">
-        {post.images?.length ? (
+        {coverUrl ? (
           <img
-            src={buildImageUrl(post.images[0].storage_path)}
+            src={coverUrl}
             alt={post.title}
             className="h-full w-full object-cover"
             loading="lazy"

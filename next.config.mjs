@@ -8,7 +8,9 @@ const nextConfig = {
         protocol: 'https',
         hostname: '**.supabase.co'
       }
-    ]
+    ],
+    domains: ['localhost'],
+    unoptimized: true
   }
 };
 

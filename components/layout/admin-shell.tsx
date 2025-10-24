@@ -10,7 +10,8 @@ const NAV_ITEMS = [
   { label: '控制台', href: '/admin' },
   { label: '帖子管理', href: '/admin/posts' },
   { label: '评论管理', href: '/admin/comments' },
-  { label: '比赛管理', href: '/admin/contests' }
+  { label: '比赛管理', href: '/admin/contests' },
+  { label: '用户管理', href: '/admin/users' }
 ] as const;
 
 interface AdminShellProps {

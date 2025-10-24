@@ -77,6 +77,14 @@ export function ProfileScreen() {
         >
           {signOutMutation.isPending ? '退出中…' : '退出登录'}
         </Button>
+
+        {profile.role === 'admin' && (
+          <Link href={'/admin' as Route} className="mt-2 w-full">
+            <Button variant="primary" className="w-full">
+              进入管理后台
+            </Button>
+          </Link>
+        )}
       </header>
 
       <section className="rounded-3xl border border-white/5 p-4">

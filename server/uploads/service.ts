@@ -36,13 +36,17 @@ export const createSignedUploadUrl = async (userId: string, payload: CreateSigne
   const input = createSignedUploadInputSchema.parse(payload);
   const bucketKey = RESOURCE_BUCKET_MAP[input.resource];
   const bucketName = resolveBucket(bucketKey);
+  if (!bucketName) {
+    throw new InternalServerError(`未配置存储桶: ${bucketKey}`);
+  }
   const extension = inferExtension(input.fileName, input.contentType);
-  const objectPath = `${bucketKey}/${userId}/${Date.now()}-${randomUUID()}${extension}`;
+  const objectKey = `${userId}/${Date.now()}-${randomUUID()}${extension}`;
+  const storagePath = `${bucketKey}/${objectKey}`;
 
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase.storage
     .from(bucketName)
-    .createSignedUploadUrl(objectPath);
+    .createSignedUploadUrl(objectKey);
 
   if (error || !data) {
     throw new InternalServerError(error?.message ?? '生成上传凭证失败');
@@ -50,7 +54,7 @@ export const createSignedUploadUrl = async (userId: string, payload: CreateSigne
 
   return {
     bucket: bucketName,
-    path: objectPath,
+    path: storagePath,
     signedUrl: data.signedUrl,
     token: data.token
   } as const;

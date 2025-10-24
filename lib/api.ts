@@ -1,6 +1,6 @@
 import type { JsonObject, JsonValue } from '@/types/json';
 
-type JsonBody = JsonValue | JsonObject;
+type JsonBody = JsonValue | JsonObject | Record<string, unknown>;
 
 type RequestInitWithJson<T extends JsonBody = JsonBody> = RequestInit & {
   json?: T;

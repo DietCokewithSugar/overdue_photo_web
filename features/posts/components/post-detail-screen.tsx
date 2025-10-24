@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useLikeMutation, usePostQuery } from '@/features/posts/hooks';
+import { buildStorageProxyUrl } from '@/lib/storage-path';
 
 import { CommentsSection } from '@/features/comments/components/comments-section';
 
@@ -53,16 +54,27 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
       </div>
 
       <div className="grid gap-3">
-        {post.images?.map((image) => (
-          <div
-            key={image.id}
-            className="h-64 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-800/80 to-neutral-900/80"
-          >
-            <div className="flex h-full w-full items-center justify-center text-neutral-500">
-              <span>图片文件：{image.storage_path.split('/').pop()}</span>
+        {post.images?.map((image) => {
+          const imageUrl = buildStorageProxyUrl(image.storage_path);
+          return imageUrl ? (
+            <img
+              key={image.id}
+              src={imageUrl}
+              alt={post.title}
+              className="w-full rounded-3xl object-cover"
+              loading="lazy"
+            />
+          ) : (
+            <div
+              key={image.id}
+              className="h-64 w-full overflow-hidden rounded-3xl bg-gradient-to-br from-neutral-800/80 to-neutral-900/80"
+            >
+              <div className="flex h-full w-full items-center justify-center text-neutral-500">
+                <span>图片文件：{image.storage_path.split('/').pop()}</span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="flex items-center justify-between rounded-3xl border border-white/5 px-4 py-3">

@@ -153,7 +153,8 @@ export const listPosts = async (options: ListPostsOptions = {}): Promise<PostWit
     .from('posts')
     .select('*, post_images(*)')
     .order('published_at', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .order('sort_order', { ascending: true, referencedTable: 'post_images' });
 
   if (options.filter === 'latest') {
     query = query.eq('status', 'published');

@@ -10,8 +10,7 @@ const CARDS: Array<{
 }> = [
   { key: 'posts', title: '帖子总数', description: '包含草稿与已发布帖子' },
   { key: 'comments', title: '评论总数', description: '所有用户评论数量' },
-  { key: 'contests', title: '比赛数量', description: '已创建的摄影比赛' },
-  { key: 'pendingEntries', title: '待审核投稿', description: '当前等待审核的比赛投稿' }
+  { key: 'contests', title: '比赛数量', description: '已创建的摄影比赛' }
 ];
 
 export function OverviewCards() {

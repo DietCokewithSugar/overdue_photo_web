@@ -3,13 +3,15 @@ import { notFound } from 'next/navigation';
 import { PostDetailScreen } from '@/features/posts/components/post-detail-screen';
 
 interface PostPageProps {
-  params: { postId: string };
+  params: Promise<{ postId: string }>;
 }
 
-export default function PostPage({ params }: PostPageProps) {
-  if (!params.postId) {
+export default async function PostPage({ params }: PostPageProps) {
+  const { postId } = await params;
+
+  if (!postId) {
     notFound();
   }
 
-  return <PostDetailScreen postId={params.postId} />;
+  return <PostDetailScreen postId={postId} />;
 }

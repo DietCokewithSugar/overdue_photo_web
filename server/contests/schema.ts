@@ -10,8 +10,14 @@ export const createContestInputSchema = z
       .min(3)
       .max(80)
       .regex(/^[a-z0-9-]+$/, 'slug 仅能包含小写字母、数字与连字符'),
-    description: z.string().max(8000).optional(),
-    posterPath: z.string().min(1),
+    description: z
+      .string()
+      .max(8000)
+      .optional(),
+    posterPath: z
+      .string()
+      .min(1)
+      .optional(),
     submissionStartsAt: z.string().datetime(),
     submissionEndsAt: z.string().datetime(),
     singleSubmissionLimit: z.number().int().min(0).max(100).default(0),

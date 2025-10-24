@@ -178,7 +178,8 @@ export const createContestEntry = async (
       author_id: userId,
       entry_type: input.entryType,
       title: input.title,
-      description: input.description ?? null
+      description: input.description ?? null,
+      status: 'approved'
     })
     .select('*')
     .single();

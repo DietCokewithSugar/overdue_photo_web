@@ -4,7 +4,10 @@ import Link from 'next/link';
 import type { Route } from 'next';
 
 import type { ContestDto } from '@/features/contests/types';
+import Image from 'next/image';
+
 import { ImageIcon, TrophyIcon } from '@/components/icons';
+import { buildStorageProxyUrl } from '@/lib/storage-path';
 
 interface ContestCardProps {
   contest: ContestDto;
@@ -20,6 +23,7 @@ export function ContestCard({ contest }: ContestCardProps) {
   const href = `/contests/${contest.id}` as Route;
   const start = new Date(contest.submission_starts_at).toLocaleDateString();
   const end = new Date(contest.submission_ends_at).toLocaleDateString();
+  const posterUrl = contest.poster_path ? buildStorageProxyUrl(contest.poster_path) : null;
 
   return (
     <Link
@@ -27,10 +31,20 @@ export function ContestCard({ contest }: ContestCardProps) {
       className="flex flex-col overflow-hidden rounded-3xl border border-white/5 bg-neutral-900"
       prefetch
     >
-      <div className="relative h-40 w-full bg-gradient-to-br from-brand-500/10 to-brand-500/5">
-        <div className="absolute inset-0 flex items-center justify-center text-brand-200/80">
-          <TrophyIcon size={48} />
-        </div>
+      <div className="relative h-40 w-full overflow-hidden bg-gradient-to-br from-brand-500/10 to-brand-500/5">
+        {posterUrl ? (
+          <Image
+            src={posterUrl}
+            alt={contest.title}
+            fill
+            className="object-cover"
+            sizes="(min-width: 768px) 320px, 100vw"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center text-brand-200/80">
+            <TrophyIcon size={48} />
+          </div>
+        )}
         <div className="absolute left-4 top-4 rounded-full bg-black/40 px-3 py-1 text-xs text-neutral-200">
           {statusText[contest.status]}
         </div>
