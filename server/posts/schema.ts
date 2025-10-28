@@ -13,7 +13,11 @@ export const postImageInputSchema = z.object({
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
   blurhash: z.string().optional(),
+<<<<<<< HEAD
   sortOrder: z.number().int().nonnegative().optional()
+=======
+  sortOrder: z.number().int().nonnegative().default(0)
+>>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
 });
 
 export const createPostInputSchema = z.object({

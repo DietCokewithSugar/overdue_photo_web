@@ -18,6 +18,7 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const href = `/posts/${post.id}` as Route;
+<<<<<<< HEAD
   const coverUrls = (post.images ?? [])
     .map((img) =>
       getPublicImageUrl(img.storage_path, { width: 1400, height: 1400, resize: 'cover' })
@@ -88,6 +89,13 @@ export function PostCard({ post }: PostCardProps) {
       swipeJustNowRef.current = false;
     }
   };
+=======
+  const coverUrl = getPublicImageUrl(post.images?.[0]?.storage_path, {
+    width: 1400,
+    height: 1400,
+    resize: 'cover'
+  });
+>>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likesCount);
@@ -169,6 +177,7 @@ export function PostCard({ post }: PostCardProps) {
   return (
     <article className="flex flex-col gap-5 pb-10">
       <Link href={href} className="block" prefetch>
+<<<<<<< HEAD
         <div
           className="relative w-full overflow-hidden bg-neutral-200"
           onTouchStart={handleTouchStart}
@@ -185,6 +194,11 @@ export function PostCard({ post }: PostCardProps) {
                 loading="lazy"
               />
             </>
+=======
+        <div className="relative w-full overflow-hidden bg-neutral-200">
+          {coverUrl ? (
+            <img src={coverUrl} alt={post.title} className="w-full object-cover" loading="lazy" />
+>>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
           ) : (
             <div className="flex aspect-[4/5] items-center justify-center text-neutral-500">
               <ImageIcon size={48} />
