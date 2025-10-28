@@ -1,0 +1,13 @@
+import { AdminUsersTable } from '@/features/admin/users/users-table';
+
+export default function AdminUsersPage() {
+  return (
+    <div className="flex flex-col gap-6">
+      <h2 className="text-xl font-semibold text-neutral-100">用户管理</h2>
+      <p className="text-sm text-neutral-400">
+        查看所有注册用户并管理管理员权限。
+      </p>
+      <AdminUsersTable />
+    </div>
+  );
+}
