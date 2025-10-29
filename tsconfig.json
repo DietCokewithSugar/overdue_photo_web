@@ -35,13 +35,9 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-<<<<<<< HEAD
     ".next/dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts",
     ".next\\dev/types/**/*.ts"
-=======
-    ".next/dev/types/**/*.ts"
->>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
   ],
   "exclude": [
     "node_modules"

@@ -58,6 +58,67 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
     [commentsData]
   );
 
+  // build image urls and enable swipe carousel with looping (must be before any return)
+  const imageUrls = useMemo(
+    () =>
+      (post?.images ?? [])
+        .map((image) =>
+          getPublicImageUrl(image.storage_path, {
+            width: 1600,
+            height: 1600,
+            resize: 'contain',
+            quality: 90
+          })
+        )
+        .filter((url): url is string => Boolean(url)),
+    [post?.images]
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [post?.id]);
+  const hasMultiple = imageUrls.length > 1;
+  const showPrev = () =>
+    setActiveIndex((idx) => (imageUrls.length ? (idx - 1 + imageUrls.length) % imageUrls.length : 0));
+  const showNext = () =>
+    setActiveIndex((idx) => (imageUrls.length ? (idx + 1) % imageUrls.length : 0));
+  const touchStartXRef = useRef<number | null>(null);
+  const lastDeltaXRef = useRef(0);
+  const didSwipeRef = useRef(false);
+  const handleTouchStart = (e: any) => {
+    const x = e.touches?.[0]?.clientX ?? 0;
+    touchStartXRef.current = x;
+    lastDeltaXRef.current = 0;
+    didSwipeRef.current = false;
+  };
+  const handleTouchMove = (e: any) => {
+    if (touchStartXRef.current == null) return;
+    const x = e.touches?.[0]?.clientX ?? 0;
+    const deltaX = x - touchStartXRef.current;
+    lastDeltaXRef.current = deltaX;
+    if (Math.abs(deltaX) > 10) {
+      didSwipeRef.current = true;
+    }
+  };
+  const handleTouchEnd = () => {
+    if (!hasMultiple) {
+      touchStartXRef.current = null;
+      didSwipeRef.current = false;
+      lastDeltaXRef.current = 0;
+      return;
+    }
+    if (didSwipeRef.current && Math.abs(lastDeltaXRef.current) > 40) {
+      if (lastDeltaXRef.current < 0) {
+        showNext();
+      } else {
+        showPrev();
+      }
+    }
+    touchStartXRef.current = null;
+    didSwipeRef.current = false;
+    lastDeltaXRef.current = 0;
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col gap-4 pb-36">
@@ -81,75 +142,6 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
   const publishedDate = getPostPublishedDate(post);
   const displayedLikeCount = likeCount ?? post.likesCount;
   const commentCountDisplay = comments.length || post.commentsCount || 0;
-
-<<<<<<< HEAD
-  // build image urls and enable swipe carousel with looping
-  const imageUrls = useMemo(
-    () =>
-      (post.images ?? [])
-        .map((image) =>
-          getPublicImageUrl(image.storage_path, {
-            width: 1600,
-            height: 1600,
-            resize: 'contain',
-            quality: 90
-          })
-        )
-        .filter((url): url is string => Boolean(url)),
-    [post.images]
-  );
-  const [activeIndex, setActiveIndex] = useState(0);
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [post.id]);
-  const hasMultiple = imageUrls.length > 1;
-  const showPrev = () =>
-    setActiveIndex((idx) => (imageUrls.length ? (idx - 1 + imageUrls.length) % imageUrls.length : 0));
-  const showNext = () =>
-    setActiveIndex((idx) => (imageUrls.length ? (idx + 1) % imageUrls.length : 0));
-
-  const touchStartXRef = useRef<number | null>(null);
-  const lastDeltaXRef = useRef(0);
-  const didSwipeRef = useRef(false);
-
-  const handleTouchStart = (e: any) => {
-    const x = e.touches?.[0]?.clientX ?? 0;
-    touchStartXRef.current = x;
-    lastDeltaXRef.current = 0;
-    didSwipeRef.current = false;
-  };
-
-  const handleTouchMove = (e: any) => {
-    if (touchStartXRef.current == null) return;
-    const x = e.touches?.[0]?.clientX ?? 0;
-    const deltaX = x - touchStartXRef.current;
-    lastDeltaXRef.current = deltaX;
-    if (Math.abs(deltaX) > 10) {
-      didSwipeRef.current = true;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    if (!hasMultiple) {
-      touchStartXRef.current = null;
-      didSwipeRef.current = false;
-      lastDeltaXRef.current = 0;
-      return;
-    }
-    if (didSwipeRef.current && Math.abs(lastDeltaXRef.current) > 40) {
-      if (lastDeltaXRef.current < 0) {
-        showNext();
-      } else {
-        showPrev();
-      }
-    }
-    touchStartXRef.current = null;
-    didSwipeRef.current = false;
-    lastDeltaXRef.current = 0;
-  };
-
-=======
->>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
   const handleToggleLike = async () => {
     if (likeMutation.isPending || unlikeMutation.isPending) return;
 
@@ -202,7 +194,6 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
         ← 返回
       </button>
 
-<<<<<<< HEAD
       <div
         className="relative w-full overflow-hidden bg-neutral-200"
         onTouchStart={handleTouchStart}
@@ -219,40 +210,6 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
         ) : (
           <div className="h-64 w-full bg-gradient-to-br from-neutral-200 to-neutral-300" />
         )}
-=======
-      <div className="flex flex-col gap-4">
-        {post.images?.map((image) => {
-          const imageUrl = getPublicImageUrl(image.storage_path, {
-            width: 1600,
-            height: 1600,
-            resize: 'contain',
-            quality: 90
-          });
-
-          if (!imageUrl) {
-            return (
-              <div
-                key={image.id}
-                className="h-64 w-full bg-gradient-to-br from-neutral-200 to-neutral-300"
-              >
-                <div className="flex h-full w-full items-center justify-center text-sm text-neutral-600">
-                  图片文件：{image.storage_path.split('/').pop()}
-                </div>
-              </div>
-            );
-          }
-
-          return (
-            <img
-              key={image.id}
-              src={imageUrl}
-              alt={post.title}
-              className="w-full object-cover"
-              loading="lazy"
-            />
-          );
-        })}
->>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
       </div>
 
       <div className="flex flex-col gap-8 px-5">

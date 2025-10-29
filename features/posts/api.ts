@@ -69,10 +69,7 @@ export const createPost = async (payload: CreatePostPayload) => {
     if (typeof image.width === 'number') result.width = image.width;
     if (typeof image.height === 'number') result.height = image.height;
     if (image.blurhash) result.blurhash = image.blurhash;
-<<<<<<< HEAD
     if (typeof (image as any).sortOrder === 'number') result.sortOrder = (image as any).sortOrder;
-=======
->>>>>>> a2fa80735b3d417c7cf8f31ee712e08f186fc57c
 
     return result;
   });
