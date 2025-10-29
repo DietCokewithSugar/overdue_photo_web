@@ -18,6 +18,7 @@ import {
   getPostPublishedDate
 } from '@/features/posts/utils';
 import { getPublicImageUrl } from '@/lib/storage-path';
+import { PostImageCarousel, type PostImageCarouselItem } from './post-image-carousel';
 
 interface PostDetailScreenProps {
   postId: string;
@@ -58,66 +59,38 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
     [commentsData]
   );
 
-  // build image urls and enable swipe carousel with looping (must be before any return)
-  const imageUrls = useMemo(
-    () =>
-      (post?.images ?? [])
-        .map((image) =>
-          getPublicImageUrl(image.storage_path, {
-            width: 1600,
-            height: 1600,
-            resize: 'contain',
-            quality: 90
-          })
-        )
-        .filter((url): url is string => Boolean(url)),
-    [post?.images]
-  );
-  const [activeIndex, setActiveIndex] = useState(0);
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [post?.id]);
-  const hasMultiple = imageUrls.length > 1;
-  const showPrev = () =>
-    setActiveIndex((idx) => (imageUrls.length ? (idx - 1 + imageUrls.length) % imageUrls.length : 0));
-  const showNext = () =>
-    setActiveIndex((idx) => (imageUrls.length ? (idx + 1) % imageUrls.length : 0));
-  const touchStartXRef = useRef<number | null>(null);
-  const lastDeltaXRef = useRef(0);
-  const didSwipeRef = useRef(false);
-  const handleTouchStart = (e: any) => {
-    const x = e.touches?.[0]?.clientX ?? 0;
-    touchStartXRef.current = x;
-    lastDeltaXRef.current = 0;
-    didSwipeRef.current = false;
-  };
-  const handleTouchMove = (e: any) => {
-    if (touchStartXRef.current == null) return;
-    const x = e.touches?.[0]?.clientX ?? 0;
-    const deltaX = x - touchStartXRef.current;
-    lastDeltaXRef.current = deltaX;
-    if (Math.abs(deltaX) > 10) {
-      didSwipeRef.current = true;
+  const carouselImages = useMemo<PostImageCarouselItem[]>(() => {
+    const images = post?.images ?? [];
+    if (images.length === 0) return [];
+    return images.reduce<PostImageCarouselItem[]>((accumulator, image) => {
+      const url = getPublicImageUrl(image.storage_path, {
+        width: 1600,
+        height: 1600,
+        resize: 'contain',
+        quality: 90
+      });
+      if (!url) return accumulator;
+      accumulator.push({
+        url,
+        width: image.width ?? null,
+        height: image.height ?? null
+      });
+      return accumulator;
+    }, []);
+  }, [post?.images]);
+  const preferredAspectRatio = useMemo(() => {
+    const ratios = carouselImages
+      .map((image) => {
+        if (!image.width || !image.height) return null;
+        if (image.width <= 0 || image.height <= 0) return null;
+        return image.height / image.width;
+      })
+      .filter((ratio): ratio is number => ratio != null);
+    if (ratios.length === 0) {
+      return carouselImages.length > 0 ? 4 / 5 : null;
     }
-  };
-  const handleTouchEnd = () => {
-    if (!hasMultiple) {
-      touchStartXRef.current = null;
-      didSwipeRef.current = false;
-      lastDeltaXRef.current = 0;
-      return;
-    }
-    if (didSwipeRef.current && Math.abs(lastDeltaXRef.current) > 40) {
-      if (lastDeltaXRef.current < 0) {
-        showNext();
-      } else {
-        showPrev();
-      }
-    }
-    touchStartXRef.current = null;
-    didSwipeRef.current = false;
-    lastDeltaXRef.current = 0;
-  };
+    return Math.max(...ratios);
+  }, [carouselImages]);
 
   if (isLoading) {
     return (
@@ -194,23 +167,17 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
         ← 返回
       </button>
 
-      <div
-        className="relative w-full overflow-hidden bg-neutral-200"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
-        {imageUrls.length > 0 ? (
-          <img
-            src={imageUrls[activeIndex]}
-            alt={post.title}
-            className="w-full object-cover"
-            loading="lazy"
-          />
-        ) : (
-          <div className="h-64 w-full bg-gradient-to-br from-neutral-200 to-neutral-300" />
-        )}
-      </div>
+      <PostImageCarousel
+        images={carouselImages}
+        alt={post.title}
+        resetKey={post?.id}
+        className="rounded-3xl"
+        preferredAspectRatio={preferredAspectRatio ?? undefined}
+        backgroundClassName="bg-white"
+        imageFit="contain"
+        showNavButtons={false}
+        placeholder={<div className="h-64 w-full bg-white" />}
+      />
 
       <div className="flex flex-col gap-8 px-5">
         <div className="flex items-start justify-between gap-4">
@@ -273,7 +240,7 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
               <Skeleton className="h-16 w-full rounded-2xl bg-neutral-200/60" />
             </>
           ) : comments.length === 0 ? (
-            <p className="text-sm text-neutral-400">还没有评论，来聊聊吧。</p>
+            <p className="text-sm text-neutral-400">还没有评论，来聊聊吧～</p>
           ) : (
             comments.map((comment) => (
               <div key={comment.id} className="flex flex-col gap-1 rounded-2xl bg-neutral-100 px-4 py-3">
@@ -295,7 +262,7 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
             value={commentBody}
             onChange={(event) => setCommentBody(event.target.value)}
             rows={3}
-            placeholder="写下你的想法…"
+            placeholder="写下你的想法..."
             className="w-full resize-none bg-transparent text-sm text-neutral-800 outline-none placeholder:text-neutral-400"
           />
           <div className="flex justify-end">
@@ -304,7 +271,7 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
               disabled={commentMutation.isPending || !commentBody.trim()}
               className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
             >
-              {commentMutation.isPending ? '发送中…' : '发布'}
+              {commentMutation.isPending ? '发送中...' : '发布'}
             </button>
           </div>
         </form>
@@ -314,7 +281,7 @@ export function PostDetailScreen({ postId }: PostDetailScreenProps) {
           <Link href="/contests" className="text-neutral-700 underline">
             比赛专区
           </Link>
-          。
+          ～
         </div>
       </div>
     </div>

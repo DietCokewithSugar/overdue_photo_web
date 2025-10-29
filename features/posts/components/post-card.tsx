@@ -2,15 +2,18 @@
 
 import Link from 'next/link';
 import type { Route } from 'next';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react';
 
-import { HeartIcon, ImageIcon, MessageCircleIcon } from '@/components/icons';
+import { HeartIcon, MessageCircleIcon } from '@/components/icons';
 import { useCommentsPreview, useCreateComment } from '@/features/comments/hooks';
 import type { PostDto } from '@/features/posts/types';
 import { useLikeMutation, useUnlikeMutation } from '@/features/posts/hooks';
 import { getAuthorInitials, getAuthorLabel, getPostPublishedDate } from '@/features/posts/utils';
 import { getPublicImageUrl } from '@/lib/storage-path';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PostImageCarousel, type PostImageCarouselItem } from './post-image-carousel';
 
 interface PostCardProps {
   post: PostDto;
@@ -18,76 +21,81 @@ interface PostCardProps {
 
 export function PostCard({ post }: PostCardProps) {
   const href = `/posts/${post.id}` as Route;
-  const coverUrls = (post.images ?? [])
-    .map((img) =>
-      getPublicImageUrl(img.storage_path, { width: 1400, height: 1400, resize: 'cover' })
-    )
-    .filter((url): url is string => Boolean(url));
-  const [activeIndex, setActiveIndex] = useState(0);
-  useEffect(() => {
-    setActiveIndex(0);
-  }, [post.id]);
-  const hasMultiple = coverUrls.length > 1;
-  const showPrev = () =>
-    setActiveIndex((idx) => (coverUrls.length ? (idx - 1 + coverUrls.length) % coverUrls.length : 0));
-  const showNext = () =>
-    setActiveIndex((idx) => (coverUrls.length ? (idx + 1) % coverUrls.length : 0));
-
-  // touch swipe handlers for mobile, and block navigation when a swipe happens
-  const touchStartXRef = useRef<number | null>(null);
-  const lastDeltaXRef = useRef(0);
-  const didSwipeRef = useRef(false);
-  const swipeJustNowRef = useRef(false);
-
-  const handleTouchStart = (e: any) => {
-    const x = e.touches?.[0]?.clientX ?? 0;
-    touchStartXRef.current = x;
-    lastDeltaXRef.current = 0;
-    didSwipeRef.current = false;
-  };
-
-  const handleTouchMove = (e: any) => {
-    if (touchStartXRef.current == null) return;
-    const x = e.touches?.[0]?.clientX ?? 0;
-    const deltaX = x - touchStartXRef.current;
-    lastDeltaXRef.current = deltaX;
-    if (Math.abs(deltaX) > 10) {
-      didSwipeRef.current = true;
+  const router = useRouter();
+  const carouselImages = useMemo<PostImageCarouselItem[]>(() => {
+    const images = post.images ?? [];
+    if (images.length === 0) return [];
+    return images.reduce<PostImageCarouselItem[]>((accumulator, image) => {
+      const url = getPublicImageUrl(image.storage_path, {
+        width: 1400,
+        resize: 'contain',
+        quality: 85
+      });
+      if (!url) return accumulator;
+      accumulator.push({
+        url,
+        width: image.width ?? null,
+        height: image.height ?? null
+      });
+      return accumulator;
+    }, []);
+  }, [post.images]);
+  const preferredAspectRatio = useMemo(() => {
+    const ratios = carouselImages
+      .map((image) => {
+        if (!image.width || !image.height) return null;
+        if (image.width <= 0 || image.height <= 0) return null;
+        return image.height / image.width;
+      })
+      .filter((ratio): ratio is number => ratio != null);
+    if (ratios.length === 0) {
+      return carouselImages.length > 0 ? 4 / 5 : null;
     }
+    return Math.max(...ratios);
+  }, [carouselImages]);
+  const swipeJustNowRef = useRef(false);
+  const swipeResetTimeoutRef = useRef<number | null>(null);
+
+  const handleCarouselNavigate = () => {
+    swipeJustNowRef.current = true;
+    if (swipeResetTimeoutRef.current) {
+      window.clearTimeout(swipeResetTimeoutRef.current);
+    }
+    swipeResetTimeoutRef.current = window.setTimeout(() => {
+      swipeJustNowRef.current = false;
+      swipeResetTimeoutRef.current = null;
+    }, 250);
   };
 
-  const handleTouchEnd = () => {
-    if (!hasMultiple) {
-      touchStartXRef.current = null;
-      didSwipeRef.current = false;
-      lastDeltaXRef.current = 0;
-      swipeJustNowRef.current = false;
+  const handleCardNavigate = () => {
+    router.push(href);
+  };
+
+  const handleContainerClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (swipeJustNowRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
       return;
     }
-    if (didSwipeRef.current && Math.abs(lastDeltaXRef.current) > 40) {
-      if (lastDeltaXRef.current < 0) {
-        showNext();
-      } else {
-        showPrev();
-      }
-      swipeJustNowRef.current = true;
-      // reset shortly after to allow next tap to navigate
-      setTimeout(() => {
-        swipeJustNowRef.current = false;
-      }, 0);
-    }
-    touchStartXRef.current = null;
-    didSwipeRef.current = false;
-    lastDeltaXRef.current = 0;
+    handleCardNavigate();
   };
 
-  const handleContainerClick = (e: any) => {
-    if (swipeJustNowRef.current) {
-      e.preventDefault?.();
-      e.stopPropagation?.();
-      swipeJustNowRef.current = false;
-    }
+  const handleContainerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    if (swipeJustNowRef.current) return;
+    handleCardNavigate();
   };
+
+  useEffect(
+    () => () => {
+      if (swipeResetTimeoutRef.current) {
+        window.clearTimeout(swipeResetTimeoutRef.current);
+        swipeResetTimeoutRef.current = null;
+      }
+    },
+    []
+  );
 
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(post.likesCount);
@@ -168,31 +176,25 @@ export function PostCard({ post }: PostCardProps) {
 
   return (
     <article className="flex flex-col gap-5 pb-10">
-      <Link href={href} className="block" prefetch>
-        <div
-          className="relative w-full overflow-hidden bg-neutral-200"
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onClick={handleContainerClick}
-        >
-          {coverUrls.length > 0 ? (
-            <>
-              <img
-                src={coverUrls[activeIndex]}
-                alt={post.title}
-                className="w-full object-cover"
-                loading="lazy"
-              />
-            </>
-          ) : (
-            <div className="flex aspect-[4/5] items-center justify-center text-neutral-500">
-              <ImageIcon size={48} />
-            </div>
-          )}
-        </div>
-      </Link>
-
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={post.title ? `查看${post.title}详情` : `查看帖子详情`}
+        className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
+        onClick={handleContainerClick}
+        onKeyDown={handleContainerKeyDown}
+      >
+        <PostImageCarousel
+          images={carouselImages}
+          alt={post.title}
+          resetKey={post.id}
+          preferredAspectRatio={preferredAspectRatio ?? undefined}
+          backgroundClassName="bg-white"
+          imageFit="contain"
+          showNavButtons={false}
+          onUserNavigate={handleCarouselNavigate}
+        />
+      </div>
       <div className="flex flex-col gap-6 px-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -268,7 +270,7 @@ export function PostCard({ post }: PostCardProps) {
               value={commentBody}
               onChange={(event) => setCommentBody(event.target.value)}
               rows={2}
-              placeholder="写下你的想法…"
+              placeholder="写下你的想法..."
               className="w-full resize-none border-b border-neutral-200 bg-transparent pb-2 text-sm text-neutral-800 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
             />
             <div className="flex justify-end">
@@ -277,7 +279,7 @@ export function PostCard({ post }: PostCardProps) {
                 disabled={commentMutation.isPending || !commentBody.trim()}
                 className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {commentMutation.isPending ? '发送中…' : '发布'}
+                {commentMutation.isPending ? '发送中...' : '发布'}
               </button>
             </div>
           </form>
