@@ -105,6 +105,7 @@ Next.js (App Router) + React Query + Tailwind
   - 使用 `@jsquash` 系列编码器（MozJPEG/WebP）在前端进行高质量压缩。
   - 调用后端 API 获取签名 URL，再上传到 Supabase Storage。
   - 上传成功后更新对应数据库记录。
+- **头像处理**：个人资料页头像上传复用 `@jsquash` 压缩（≤2MB，最大边 1024px），保持高质量同时降低传输体积。
 
 ### 5.3 后端（Next.js Route Handlers）
 - **认证**：通过 Supabase Auth，前端获取 session token；API 端使用服务端 SDK 验证 `Authorization` 头。

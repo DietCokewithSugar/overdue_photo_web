@@ -89,20 +89,29 @@ export function ProfileEditScreen() {
     setAvatarUploading(true);
 
     try {
-      const { path, signedUrl } = await requestSignedUpload({
-        resource: 'profile-avatar',
-        fileName: file.name,
-        contentType: file.type,
-        fileSize: file.size
+      const { compressImageAdvanced } = await import('@/lib/image-compression');
+      const compressed = await compressImageAdvanced(file, {
+        maxWidthOrHeight: 1024,
+        quality: 65,
+        minQuality: 40,
+        preferWebp: file.type === 'image/webp' || file.type === 'image/png',
+        maxFileSizeBytes: 2 * 1024 * 1024
       });
 
-      await uploadToSignedUrl(signedUrl, file);
+      const { path, signedUrl } = await requestSignedUpload({
+        resource: 'profile-avatar',
+        fileName: compressed.name,
+        contentType: compressed.type,
+        fileSize: compressed.size
+      });
+
+      await uploadToSignedUrl(signedUrl, compressed);
 
       if (avatarPreview) {
         URL.revokeObjectURL(avatarPreview);
       }
 
-      const previewUrl = URL.createObjectURL(file);
+      const previewUrl = URL.createObjectURL(compressed);
       setAvatarPreview(previewUrl);
       setAvatarPath(path);
     } catch (error) {
