@@ -72,6 +72,13 @@ export function PostImageCarousel({
     };
   }, [preferredAspectRatio]);
 
+  const containerStyle: CSSProperties = useMemo(() => {
+    return {
+      ...(containerAspectStyle ?? {}),
+      touchAction: 'pan-y'
+    };
+  }, [containerAspectStyle]);
+
   useEffect(() => {
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
@@ -184,7 +191,7 @@ export function PostImageCarousel({
           aspectRatioClassName ?? 'aspect-[4/5]',
           className
         )}
-        style={containerAspectStyle}
+        style={containerStyle}
       >
         {placeholder ?? <ImageIcon size={48} className="text-neutral-500" />}
       </div>
@@ -206,7 +213,7 @@ export function PostImageCarousel({
           aspectRatioClassName,
           isDragging ? 'cursor-grabbing' : total > 1 ? 'cursor-grab' : 'cursor-default'
         )}
-        style={containerAspectStyle}
+        style={containerStyle}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
