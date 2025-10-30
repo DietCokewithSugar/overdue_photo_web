@@ -40,19 +40,36 @@ export function NewPostScreen() {
   const processFiles = async (files: File[]) => {
     if (!files.length) return;
     setErrorMessage(null);
-    const imageCompression = (await import('browser-image-compression')).default;
+    const { compressImageAdvanced } = await import('@/lib/image-compression');
 
-    const compressedFiles = await Promise.all(
-      files.map(async (file) => {
-        const compressed = await imageCompression(file, {
+    const results = await Promise.allSettled(
+      files.map((file) =>
+        compressImageAdvanced(file, {
           maxWidthOrHeight: 2048,
-          maxSizeMB: 4,
-          useWebWorker: true
-        });
-
-        return compressed;
-      })
+          quality: 80,
+          minQuality: 40,
+          preferWebp: file.type === 'image/webp' || file.type === 'image/png',
+          maxFileSizeBytes: 4 * 1024 * 1024
+        })
+      )
     );
+
+    const succeeded = results.filter(
+      (result): result is PromiseFulfilledResult<File> => result.status === 'fulfilled'
+    );
+
+    const failed = results.length - succeeded.length;
+    if (!succeeded.length) {
+      setErrorMessage('未能处理所选图片，请检查文件大小或格式后重试。');
+      return;
+    }
+
+    if (failed > 0) {
+      console.warn(`压缩失败的图片数量：${failed}`);
+      setErrorMessage('部分图片未能处理成功，请重新选择或减小文件大小。');
+    }
+
+    const compressedFiles = succeeded.map((result) => result.value);
 
     const placeholders: LocalImage[] = compressedFiles.map((file) => ({
       id: crypto.randomUUID(),

@@ -34,14 +34,16 @@ export function ContestCreateForm() {
     const fileList = event.target.files;
     if (!fileList?.length) return;
 
-    const imageCompression = (await import('browser-image-compression')).default;
     const file = fileList[0];
 
     try {
-      const compressed = await imageCompression(file, {
+      const { compressImageAdvanced } = await import('@/lib/image-compression');
+      const compressed = await compressImageAdvanced(file, {
         maxWidthOrHeight: 1920,
-        maxSizeMB: 4,
-        useWebWorker: true
+        quality: 85,
+        minQuality: 50,
+        preferWebp: file.type === 'image/webp' || file.type === 'image/png',
+        maxFileSizeBytes: 4 * 1024 * 1024
       });
 
       if (poster?.previewUrl) {

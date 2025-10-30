@@ -39,7 +39,7 @@
 
 ### 3.3 帖子创建
 - 表单字段：标题（必填）、正文（富文本编辑器）、图片选择（1-N 张）。
-- 图片上传前在浏览器端使用 `browser-image-compression` 进行压缩与尺寸限制。
+- 图片上传前在浏览器端使用基于 Wasm 的 `@jsquash` 编码器（MozJPEG/WebP）进行压缩与尺寸限制。
 - 支持多图排序；预览压缩后的图片信息。
 - 提交后由后端获取签名上传 URL，将文件存入 Supabase Storage，对应记录写入数据库。
 
@@ -102,7 +102,7 @@ Next.js (App Router) + React Query + Tailwind
 - **状态管理**：TanStack Query（React Query）处理数据获取、缓存、乐观更新；Zustand 管理全局 UI 状态（模态、Toast）。
 - **表单与富文本**：React Hook Form + Zod 做表单校验；TipTap 或 Lexical 实现轻量富文本编辑器（限定样式）。
 - **图片上传**：
-  - 使用 `browser-image-compression` 在前端压缩。
+  - 使用 `@jsquash` 系列编码器（MozJPEG/WebP）在前端进行高质量压缩。
   - 调用后端 API 获取签名 URL，再上传到 Supabase Storage。
   - 上传成功后更新对应数据库记录。
 
@@ -345,7 +345,7 @@ Next.js (App Router) + React Query + Tailwind
 5. **体验升级 (v0.5)**：PWA、通知（邮件/推送）、多语言。
 
 ## 12. 依赖清单（部分）
-- 前端：`next`, `react`, `react-dom`, `@tanstack/react-query`, `zustand`, `tailwindcss`, `@headlessui/react`, `@heroicons/react`, `browser-image-compression`, `@tiptap/react`。
+- 前端：`next`, `react`, `react-dom`, `@tanstack/react-query`, `zustand`, `tailwindcss`, `@headlessui/react`, `@heroicons/react`, `@jsquash/jpeg`, `@jsquash/webp`, `@jsquash/resize`, `@tiptap/react`。
 - 后端：`@supabase/supabase-js`, `zod`, `sharp`, `jsonwebtoken`, `upstash/ratelimit`.
 - 工具：`eslint`, `prettier`, `typescript`, `vitest`, `@testing-library/react`, `playwright`.
 

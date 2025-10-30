@@ -47,25 +47,45 @@ export function ContestSubmissionScreen({ contestId }: ContestSubmissionScreenPr
     const fileList = event.target.files;
     if (!fileList?.length) return;
 
-    const imageCompression = (await import('browser-image-compression')).default;
+    const { compressImageAdvanced } = await import('@/lib/image-compression');
 
     const files = Array.from(fileList).slice(0, limit - images.length);
-    const tasks = files.map(async (file) => {
-      const compressed = await imageCompression(file, {
-        maxWidthOrHeight: 2500,
-        maxSizeMB: contest?.single_file_size_limit_mb ?? 10,
-        useWebWorker: true
-      });
+    const maxBytes = (contest?.single_file_size_limit_mb ?? 10) * 1024 * 1024;
 
-      return {
-        id: crypto.randomUUID(),
-        file: compressed,
-        previewUrl: URL.createObjectURL(compressed),
-        status: 'pending' as const
-      } satisfies LocalImage;
-    });
+    const results = await Promise.allSettled(
+      files.map((file) =>
+        compressImageAdvanced(file, {
+          maxWidthOrHeight: 2500,
+          quality: 85,
+          minQuality: 40,
+          preferWebp: file.type === 'image/webp' || file.type === 'image/png',
+          maxFileSizeBytes: maxBytes
+        })
+      )
+    );
 
-    const items = await Promise.all(tasks);
+    const succeeded = results.filter(
+      (result): result is PromiseFulfilledResult<File> => result.status === 'fulfilled'
+    );
+
+    const failed = results.length - succeeded.length;
+    if (failed > 0) {
+      console.warn(`比赛投稿压缩失败数量：${failed}`);
+      setMessage('部分图片未能处理成功，请检查大小限制后重试。');
+    }
+
+    if (!succeeded.length) {
+      event.target.value = '';
+      return;
+    }
+
+    const items = succeeded.map((result) => ({
+      id: crypto.randomUUID(),
+      file: result.value,
+      previewUrl: URL.createObjectURL(result.value),
+      status: 'pending' as const
+    }));
+
     setImages((prev) => [...prev, ...items]);
     event.target.value = '';
   };
