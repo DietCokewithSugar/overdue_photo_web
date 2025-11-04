@@ -187,6 +187,66 @@ const getPostStats = async (postId: string) => {
   };
 };
 
+/**
+ * 自动将帖子设为精选（当点赞数达到阈值时）
+ * @param postId 帖子ID
+ * @param likesCount 当前点赞数
+ */
+const autoFeaturePost = async (postId: string, likesCount: number) => {
+  const FEATURED_THRESHOLD = 5;
+
+  // 如果点赞数未达到阈值，不处理
+  if (likesCount < FEATURED_THRESHOLD) {
+    return;
+  }
+
+  const supabase = getSupabaseAdminClient();
+
+  // 检查帖子当前是否已经是精选
+  const { data: post, error: fetchError } = await supabase
+    .from('posts')
+    .select('is_featured')
+    .eq('id', postId)
+    .maybeSingle();
+
+  if (fetchError) {
+    console.error('Failed to fetch post for auto-feature:', fetchError);
+    return;
+  }
+
+  if (!post) {
+    return;
+  }
+
+  // 如果已经是精选，不需要重复设置
+  if (post.is_featured) {
+    return;
+  }
+
+  // 自动设置为精选
+  const { error: updateError } = await supabase
+    .from('posts')
+    .update({ is_featured: true })
+    .eq('id', postId);
+
+  if (updateError) {
+    console.error('Failed to auto-feature post:', updateError);
+    return;
+  }
+
+  // 记录到 post_features 表（系统自动操作，featured_by 为 null）
+  const { error: featureError } = await supabase.from('post_features').insert({
+    post_id: postId,
+    featured_by: null, // 系统自动操作
+    featured_at: new Date().toISOString()
+  });
+
+  if (featureError) {
+    // 记录操作历史失败不影响主操作
+    console.error('Failed to record auto-featured action:', featureError);
+  }
+};
+
 export interface ListPostsOptions {
   authorId?: string;
   cursor?: string;
@@ -407,6 +467,15 @@ export const likePost = async (postId: string, userId: string) => {
   }
 
   const stats = await getPostStats(postId);
+  
+  // 如果点赞数达到或超过5，自动设为精选
+  if (stats.likesCount >= 5) {
+    // 异步执行，不阻塞返回
+    autoFeaturePost(postId, stats.likesCount).catch((err) => {
+      console.error('Auto-feature post failed:', err);
+    });
+  }
+
   return stats.likesCount;
 };
 
