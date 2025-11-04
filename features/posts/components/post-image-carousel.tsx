@@ -38,6 +38,13 @@ interface PostImageCarouselProps {
 
 const DEFAULT_BACKGROUND = 'bg-white';
 
+// 检测是否为 iOS 设备
+const isIOS = () => {
+  if (typeof window === 'undefined') return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+};
+
 export function PostImageCarousel({
   images,
   alt,
@@ -73,9 +80,12 @@ export function PostImageCarousel({
   }, [preferredAspectRatio]);
 
   const containerStyle: CSSProperties = useMemo(() => {
+    // iOS 设备上使用 'none' 以完全阻止浏览器手势干扰
+    // 非 iOS 设备使用 'pan-y' 允许垂直滚动
+    const touchAction = isIOS() ? 'none' : 'pan-y';
     return {
       ...(containerAspectStyle ?? {}),
-      touchAction: 'pan-y'
+      touchAction
     };
   }, [containerAspectStyle]);
 
@@ -124,7 +134,8 @@ export function PostImageCarousel({
     }
     setIsDragging(false);
     const pointerId = pointerIdRef.current;
-    if (pointerId != null) {
+    // iOS 设备上跳过 releasePointerCapture
+    if (pointerId != null && !isIOS()) {
       try {
         containerRef.current?.releasePointerCapture(pointerId);
       } catch {
@@ -141,10 +152,13 @@ export function PostImageCarousel({
     lastDeltaRef.current = 0;
     setIsDragging(true);
     setTransitionEnabled(false);
-    try {
-      containerRef.current?.setPointerCapture(event.pointerId);
-    } catch {
-      // noop
+    // iOS 设备上跳过 setPointerCapture，避免兼容性问题
+    if (!isIOS()) {
+      try {
+        containerRef.current?.setPointerCapture(event.pointerId);
+      } catch {
+        // noop
+      }
     }
   };
 
@@ -208,7 +222,7 @@ export function PostImageCarousel({
       <div
         ref={containerRef}
         className={cn(
-          'relative w-full overflow-hidden touch-pan-y',
+          'relative w-full overflow-hidden',
           backgroundClassName ?? DEFAULT_BACKGROUND,
           aspectRatioClassName,
           isDragging ? 'cursor-grabbing' : total > 1 ? 'cursor-grab' : 'cursor-default'
