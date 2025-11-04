@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import { ChangeEvent, DragEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { useCreatePostMutation } from '@/features/posts/hooks';
@@ -21,6 +21,8 @@ type Step = 'editing' | 'success';
 // 支持的图片格式
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
 const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
+// 最多上传照片数量
+const MAX_IMAGES = 9;
 
 // 验证文件格式是否为支持的格式
 const isValidImageFormat = (file: File): boolean => {
@@ -40,6 +42,7 @@ export function NewPostScreen() {
   const [description, setDescription] = useState('');
   const [images, setImages] = useState<LocalImage[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
   const createPost = useCreatePostMutation();
 
@@ -57,8 +60,21 @@ export function NewPostScreen() {
     if (!files.length) return;
     setErrorMessage(null);
     
+    // 检查照片数量限制
+    const remainingSlots = MAX_IMAGES - images.length;
+    if (remainingSlots <= 0) {
+      setErrorMessage(`最多只能上传 ${MAX_IMAGES} 张照片，请先删除部分照片后再上传。`);
+      return;
+    }
+    
+    // 如果新选择的照片数量超过剩余数量，只处理前 N 张
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      setErrorMessage(`最多只能上传 ${MAX_IMAGES} 张照片，已自动选择前 ${remainingSlots} 张。`);
+    }
+    
     // 验证文件格式
-    const invalidFiles = files.filter((file) => !isValidImageFormat(file));
+    const invalidFiles = filesToProcess.filter((file) => !isValidImageFormat(file));
     if (invalidFiles.length > 0) {
       const invalidFileNames = invalidFiles.map((f) => f.name).join('、');
       setErrorMessage(`不支持的文件格式：${invalidFileNames}。请上传 JPG 或 PNG 格式的图片。`);
@@ -68,7 +84,7 @@ export function NewPostScreen() {
     const { compressImageAdvanced } = await import('@/lib/image-compression');
 
     const results = await Promise.allSettled(
-      files.map((file) =>
+      filesToProcess.map((file) =>
         compressImageAdvanced(file, {
           maxWidthOrHeight: 2048,
           quality: 80,
@@ -142,6 +158,44 @@ export function NewPostScreen() {
     event.target.value = '';
   };
 
+  const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // 如果已达到最大数量，不允许拖拽
+    if (images.length >= MAX_IMAGES) {
+      return;
+    }
+    if (!isDragging) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    // 只有当离开的是拖拽区域本身时才设置为 false
+    if (event.currentTarget === event.target) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = async (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+
+    // 如果已达到最大数量，不允许拖拽上传
+    if (images.length >= MAX_IMAGES) {
+      setErrorMessage(`最多只能上传 ${MAX_IMAGES} 张照片，请先删除部分照片后再上传。`);
+      return;
+    }
+
+    const files = Array.from(event.dataTransfer.files);
+    if (files.length > 0) {
+      await processFiles(files);
+    }
+  };
+
   useEffect(() => {
     const pendingFiles = consumePendingNewPostFiles();
     if (pendingFiles.length) {
@@ -213,13 +267,35 @@ export function NewPostScreen() {
 
         <div className="flex flex-col gap-4 rounded-[24px] border border-dashed border-neutral-200 bg-neutral-50 px-5 py-5">
           <div className="flex items-center justify-between text-sm text-neutral-600">
-            <span>{hasImages ? `已选择 ${images.length} 张照片` : '暂未选择照片'}</span>
+            <span>{hasImages ? `已选择 ${images.length}/${MAX_IMAGES} 张照片` : '暂未选择照片'}</span>
             <span className="text-xs text-neutral-400">合计 {totalSize.toFixed(2)} MB</span>
           </div>
 
-          <label className="flex h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-neutral-300 bg-white text-sm text-neutral-500 transition hover:border-neutral-400">
-            点击或拖拽图片到此处
-            <input type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple className="hidden" onChange={handleImageChange} />
+          <label
+            className={`flex h-36 flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed bg-white text-sm transition ${
+              images.length >= MAX_IMAGES
+                ? 'cursor-not-allowed border-neutral-200 bg-neutral-50 text-neutral-400'
+                : isDragging
+                  ? 'cursor-pointer border-neutral-500 bg-neutral-100 text-neutral-700'
+                  : 'cursor-pointer border-neutral-300 text-neutral-500 hover:border-neutral-400'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {images.length >= MAX_IMAGES
+              ? `已达到最大数量（${MAX_IMAGES} 张）`
+              : isDragging
+                ? '松开鼠标上传照片'
+                : '点击或拖拽图片到此处'}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,.jpg,.jpeg,.png"
+              multiple
+              className="hidden"
+              onChange={handleImageChange}
+              disabled={images.length >= MAX_IMAGES}
+            />
           </label>
 
           {hasImages ? (
