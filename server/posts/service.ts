@@ -293,11 +293,20 @@ export const updatePost = async (
 
   const input = updatePostInputSchema.parse(payload);
 
+  // 如果尝试设置精选状态，检查是否为管理员
+  if (input.isFeatured !== undefined && input.isFeatured !== existing.is_featured) {
+    if (!isAdmin) {
+      throw new ForbiddenError('只有管理员可以设置精选状态');
+    }
+  }
+
   const nextStatus = input.status ?? existing.status;
   const publishedAt =
     nextStatus === 'published'
       ? input.publishedAt ?? existing.published_at ?? new Date().toISOString()
       : existing.published_at;
+
+  const nextIsFeatured = input.isFeatured ?? existing.is_featured;
 
   const updatePayload = {
     title: input.title ?? existing.title,
@@ -306,7 +315,7 @@ export const updatePost = async (
     content_plaintext:
       input.contentPlaintext === undefined ? existing.content_plaintext : input.contentPlaintext,
     status: nextStatus,
-    is_featured: input.isFeatured ?? existing.is_featured,
+    is_featured: nextIsFeatured,
     published_at: publishedAt
   };
 
@@ -319,6 +328,20 @@ export const updatePost = async (
 
   if (updateError || !updatedPost) {
     throw new UnprocessableEntityError(updateError?.message ?? '更新帖子失败');
+  }
+
+  // 如果设为精选，记录到 post_features 表
+  if (input.isFeatured !== undefined && nextIsFeatured && !existing.is_featured) {
+    const { error: featureError } = await supabase.from('post_features').insert({
+      post_id: postId,
+      featured_by: authorId,
+      featured_at: new Date().toISOString()
+    });
+
+    if (featureError) {
+      // 记录操作历史失败不影响主操作，但记录错误
+      console.error('Failed to record featured action:', featureError);
+    }
   }
 
   if (input.images) {

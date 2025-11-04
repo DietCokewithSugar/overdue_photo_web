@@ -25,9 +25,19 @@ export const createPostInputSchema = z.object({
   publishedAt: z.string().datetime().optional()
 });
 
-export const updatePostInputSchema = createPostInputSchema.partial().extend({
-  isFeatured: z.boolean().optional()
-});
+export const updatePostInputSchema = createPostInputSchema
+  .partial()
+  .extend({
+    isFeatured: z.boolean().optional(),
+    is_featured: z.boolean().optional()
+  })
+  .transform((data) => {
+    // 统一转换：如果提供了 is_featured，也设置 isFeatured
+    if (data.is_featured !== undefined && data.isFeatured === undefined) {
+      return { ...data, isFeatured: data.is_featured };
+    }
+    return data;
+  });
 
 export type CreatePostInput = z.infer<typeof createPostInputSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostInputSchema>;
