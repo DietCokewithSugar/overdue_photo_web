@@ -18,6 +18,22 @@ interface LocalImage {
 
 type Step = 'editing' | 'success';
 
+// 支持的图片格式
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png'];
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png'];
+
+// 验证文件格式是否为支持的格式
+const isValidImageFormat = (file: File): boolean => {
+  // 检查 MIME 类型
+  if (ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    return true;
+  }
+  
+  // 检查文件扩展名（作为备用验证）
+  const fileName = file.name.toLowerCase();
+  return ALLOWED_EXTENSIONS.some((ext) => fileName.endsWith(ext));
+};
+
 export function NewPostScreen() {
   const [step, setStep] = useState<Step>('editing');
   const [title, setTitle] = useState('');
@@ -40,6 +56,15 @@ export function NewPostScreen() {
   const processFiles = async (files: File[]) => {
     if (!files.length) return;
     setErrorMessage(null);
+    
+    // 验证文件格式
+    const invalidFiles = files.filter((file) => !isValidImageFormat(file));
+    if (invalidFiles.length > 0) {
+      const invalidFileNames = invalidFiles.map((f) => f.name).join('、');
+      setErrorMessage(`不支持的文件格式：${invalidFileNames}。请上传 JPG 或 PNG 格式的图片。`);
+      return;
+    }
+    
     const { compressImageAdvanced } = await import('@/lib/image-compression');
 
     const results = await Promise.allSettled(
@@ -194,7 +219,7 @@ export function NewPostScreen() {
 
           <label className="flex h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-neutral-300 bg-white text-sm text-neutral-500 transition hover:border-neutral-400">
             点击或拖拽图片到此处
-            <input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} />
+            <input type="file" accept="image/jpeg,image/png,.jpg,.jpeg,.png" multiple className="hidden" onChange={handleImageChange} />
           </label>
 
           {hasImages ? (
